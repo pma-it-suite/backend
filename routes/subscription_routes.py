@@ -17,7 +17,4 @@ def get_users_in_subscription():
     users = list(users_collection.find({"subscription_id": subscription_id}))
 
     # Remove the _id field as it's not JSON-serializable
-    for user in users:
-        user.pop("_id", None)
-
     return jsonify({"status": "OK", "users": users})

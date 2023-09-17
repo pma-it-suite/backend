@@ -11,12 +11,12 @@ commands_routes = Blueprint('commands_routes', __name__)
 client = get_database()
 db = client["pma-it-suite"]
 commands_collection = db["commands"]
+members_collection = db["members"]
 
 @commands_routes.route('/recent', methods=['GET'])
 def get_most_recent_command():
     try:
-        data = request.json
-        device_id = data.get('device_id')
+        device_id = request.args.get('device_id')
         if not device_id:
             return jsonify({'status': 'error', 'message': 'Device ID is required'}), 400
 
@@ -24,7 +24,7 @@ def get_most_recent_command():
             {'device_id': device_id, 'status': 'pending'},
             sort=[('_id', DESCENDING)]
         )
-        
+
         if not command:
             return jsonify({'status': 'error', 'message': 'No commands found for this device'}), 404
 
@@ -39,13 +39,12 @@ def get_most_recent_command():
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
-@commands_routes.route('/status', methods=['PUT'])
+@commands_routes.route('/status', methods=['PATCH'])
 def update_command_status():
     try:
-        data = request.json
-        command_id = data.get('command_id')
-        status = data.get('status')
-        
+        command_id = request.args.get('command_id')
+        status = request.args.get('status')
+
         if not command_id or not status:
             return jsonify({'status': 'error', 'message': 'Command ID and Status are required'}), 400
 
@@ -94,19 +93,26 @@ def create_command():
 def create_commands_for_multiple_devices():
     try:
         data = request.json
-        device_ids = data.get("device_ids")
+        user_id = data.get("user_id")
         name = data.get("name")
         args = data.get("args")
 
-        if not device_ids:
-            return jsonify({"status": "error", "message": "Device IDs are required"}), 400
+        if not user_id:
+            return jsonify({"status": "error", "message": "User ID is required"}), 400
         if not name:
             return jsonify({"status": "error", "message": "Command name is required"}), 400
+
+        user = members_collection.find_one({"_id": user_id})
+        
+        if not user:
+            return jsonify({"status": "error", "message": "User not found"}), 404
+        
+        device_ids = user.get("devices", [])
 
         new_commands = []
         for device_id in device_ids:
             command_data = {
-                "_id": str(uuid.uuid4()),  # Use uuid instead of ObjectId
+                "_id": str(uuid.uuid4()),
                 "name": name,
                 "args": args,
                 "device_id": device_id,
