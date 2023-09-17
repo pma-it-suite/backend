@@ -4,6 +4,11 @@ from routes.subscription_routes import subscription_routes
 from routes.commands_routes import commands_routes
 from flask_cors import CORS
 from config.main import SERVER_HOST, SERVER_PORT
+import logging
+
+logging.basicConfig(filename='logs.txt', level=logging.INFO, 
+                    format='%(asctime)s:%(levelname)s:%(message)s')
+
 
 app = Flask(__name__)
 CORS(app)
