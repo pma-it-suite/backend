@@ -110,12 +110,12 @@ def create_commands_for_multiple_devices():
         device_ids = user.get("devices", [])
 
         new_commands = []
-        for device_id in device_ids:
+        for device in device_ids:
             command_data = {
                 "_id": str(uuid.uuid4()),
                 "name": name,
                 "args": args,
-                "device_id": device_id,
+                "device_id": device.device_id,
                 "status": "pending"  # default status
             }
             commands_collection.insert_one(command_data)
