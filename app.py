@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from routes.user_routes import user_routes
 from routes.subscription_routes import subscription_routes
-from routes.devices_routes import devices_routes
+from routes.commands_routes import commands_routes
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -9,7 +9,7 @@ CORS(app)
 
 app.register_blueprint(user_routes, url_prefix='/users')
 app.register_blueprint(subscription_routes, url_prefix='/subscriptions')
-app.register_blueprint(devices_routes, url_prefix='/devices')
+app.register_blueprint(commands_routes, url_prefix='/commands')
 
 # Test endpoint at root URL
 @app.route('/', methods=['GET'])
