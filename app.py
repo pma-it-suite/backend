@@ -3,6 +3,7 @@ from routes.user_routes import user_routes
 from routes.subscription_routes import subscription_routes
 from routes.commands_routes import commands_routes
 from flask_cors import CORS
+from config.main import SERVER_HOST, SERVER_PORT
 
 app = Flask(__name__)
 CORS(app)
@@ -18,4 +19,4 @@ def test_endpoint():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True,host=SERVER_HOST, port=SERVER_PORT)
