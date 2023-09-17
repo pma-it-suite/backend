@@ -29,14 +29,18 @@ def check_username():
 @user_routes.route('/', methods=['POST'])
 def create_user():
     data = request.json
-    username = data.get("username")
-    if not username:
-        return jsonify({"status": "error", "message": "Username is required"}), 400
 
-    user = {"username": username}
+    required_fields = ["username", "type", "tenant_id", "subscription_id"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"status": "error", "message": f"{field} is required"}), 400
 
-    users_collection.insert_one(user)
-    return jsonify({"status": "OK", "message": f"User {username} created successfully"}), 201
+    try:
+        data["_id"] = str(ObjectId())  # Generate new ObjectId
+        users_collection.insert_one(data)
+        return jsonify({"status": "OK", "message": f"User {data['username']} created successfully", "_id": data["_id"]}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 @user_routes.route('/', methods=['GET'])
 def read_user():
@@ -119,17 +123,3 @@ def generate_users():
 
     result = users_collection.insert_many(users)
     return jsonify({"status": "OK", "message": f"{len(result.inserted_ids)} users generated"})
-
-@user_routes.route('/subscription', methods=['GET'])
-def get_users_in_subscription():
-    subscription_id = request.args.get('subscription_id')
-    if subscription_id is None:
-        return jsonify({"status": "error", "message": "Subscription ID is required"}), 400
-
-    users = list(users_collection.find({"subscription_id": subscription_id}))
-
-    # Remove the _id field as it's not JSON-serializable
-    for user in users:
-        user.pop("_id", None)
-
-    return jsonify({"status": "OK", "users": users})
