@@ -6,16 +6,24 @@ from flask_cors import CORS
 from config.main import SERVER_HOST, SERVER_PORT
 import logging
 
-logging.basicConfig(filename='logs.txt', level=logging.INFO, 
+logging.basicConfig(filename='logs.txt',
+                    level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-
 app = Flask(__name__)
-CORS(app)
+CORS(app,
+     resources={
+         r"/*": {
+             "origins": "*",
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": "*"
+         }
+     })
 
 app.register_blueprint(user_routes, url_prefix='/users')
 app.register_blueprint(subscription_routes, url_prefix='/subscriptions')
 app.register_blueprint(commands_routes, url_prefix='/commands')
+
 
 # Test endpoint at root URL
 @app.route('/', methods=['GET'])
@@ -24,4 +32,4 @@ def test_endpoint():
 
 
 if __name__ == '__main__':
-    app.run(debug=True,host=SERVER_HOST, port=SERVER_PORT)
+    app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
