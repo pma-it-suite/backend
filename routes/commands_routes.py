@@ -115,7 +115,7 @@ def create_commands_for_multiple_devices():
                 "_id": str(uuid.uuid4()),
                 "name": name,
                 "args": args,
-                "device_id": device.device_id,
+                "device_id": device["device_id"],
                 "status": "pending"  # default status
             }
             print(command_data)
