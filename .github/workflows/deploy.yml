@@ -20,4 +20,4 @@ jobs:
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh -o StrictHostKeyChecking=no adminuser@172.178.91.48 'echo "test"'
-          ssh -o StrictHostKeyChecking=no adminuser@172.178.91.48 'sh ~/deploy_script.sh'
+          ssh -o StrictHostKeyChecking=no adminuser@172.178.91.48 'cd ~ && ls && ./deploy_script.sh'
