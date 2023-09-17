@@ -3,7 +3,8 @@ name: Deploy to Server
 on:
   push:
     branches:
-      - main # or any branch of your choice
+      - felipearce/add-ci # or any branch of your choice
+      #- main # or any branch of your choice
 
 jobs:
   deploy:
