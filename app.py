@@ -15,7 +15,7 @@ app.register_blueprint(commands_routes, url_prefix='/commands')
 # Test endpoint at root URL
 @app.route('/', methods=['GET'])
 def test_endpoint():
-    return jsonify({"message": "Hello, World!"})
+    return jsonify({"message": "Hello, FELIPE!"})
 
 
 if __name__ == '__main__':
