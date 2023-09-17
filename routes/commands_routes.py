@@ -147,3 +147,18 @@ def get_command_status():
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
+
+@commands_routes.route('/delete_pending', methods=['DELETE'])
+def delete_pending_commands():
+    try:
+        # Delete all commands with status 'pending'
+        result = commands_collection.delete_many({'status': 'pending'})
+
+        if result.deleted_count == 0:
+            return jsonify({'status': 'OK', 'message': 'No pending commands found'}), 200
+
+        return jsonify({'status': 'OK', 'message': f'{result.deleted_count} pending command(s) deleted'}), 200
+
+    except Exception as e:
+        print(e)
+        return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
