@@ -127,3 +127,23 @@ def create_commands_for_multiple_devices():
     except Exception as e:
         print(e)
         return jsonify({"status": "error", "message": "An error occurred"}), 500
+    
+@commands_routes.route('/status', methods=['GET'])
+def get_command_status():
+    try:
+        command_id = request.args.get('command_id')
+        
+        if not command_id:
+            return jsonify({'status': 'error', 'message': 'Command ID is required'}), 400
+
+        # Query the command by its ID
+        command = commands_collection.find_one({'_id': command_id})
+
+        if not command:
+            return jsonify({'status': 'error', 'message': 'No command found with this ID'}), 404
+
+        return command['status'], 200
+
+    except Exception as e:
+        print(e)
+        return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
