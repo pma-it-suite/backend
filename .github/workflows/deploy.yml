@@ -16,5 +16,7 @@ jobs:
 
       - name: Deploy to server
         run: |
-          rsync -r . adminuser@172.178.91.48:/home/adminuser/
-          ssh adminuser@172.178.91.48 'sh deploy_script.sh'
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no adminuser@172.178.91.48 'sh /home/adminuser/deploy_script.sh'
