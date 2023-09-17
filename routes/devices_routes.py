@@ -1,17 +1,18 @@
 # devices_routes.py
-
 from flask import Blueprint, request, jsonify
-from pymongo import MongoClient, DESCENDING
+from pymongo import DESCENDING
+import uuid
+from config.db import get_database
 
 # Initialize the Blueprint
-devices = Blueprint('devices', __name__)
+devices_routes = Blueprint('devices_routes', __name__)
 
 # Initialize MongoDB client
-client = MongoClient('mongodb://localhost:27017/')
-db = client['your_database_name']
-commands_collection = db['commands']
+client = get_database()
+db = client["pma-it-suite"]
+commands_collection = db["commands"]
 
-@devices.route('/device/<device_id>/command', methods=['GET'])
+@devices_routes.route('/device/<device_id>/command', methods=['GET'])
 def get_most_recent_command(device_id):
     try:
         # Query the most recent command for the given device_id
@@ -34,7 +35,7 @@ def get_most_recent_command(device_id):
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
-@devices.route('/command/<command_id>/status', methods=['PUT'])
+@devices_routes.route('/command/<command_id>/status', methods=['PUT'])
 def update_command_status(command_id):
     try:
         data = request.json
@@ -57,7 +58,7 @@ def update_command_status(command_id):
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
     
-@devices.route('/device/<device_id>/command', methods=['POST'])
+@devices_routes.route('/device/<device_id>/command', methods=['POST'])
 def create_command(device_id):
     try:
         data = request.json
@@ -71,7 +72,7 @@ def create_command(device_id):
 
         # Prepare command data
         command_data = {
-            "_id": str(ObjectId()),
+            "_id": str(uuid.uuid4()),  # Use uuid instead of ObjectId
             "name": name,
             "args": args,
             "device_id": device_id,
