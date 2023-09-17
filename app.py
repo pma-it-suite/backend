@@ -15,7 +15,7 @@ CORS(app,
      resources={
          r"/*": {
              "origins": "*",
-             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
              "allow_headers": "*"
          }
      })
