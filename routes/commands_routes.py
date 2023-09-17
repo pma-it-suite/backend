@@ -107,10 +107,10 @@ def create_commands_for_multiple_devices():
         if not user:
             return jsonify({"status": "error", "message": "User not found"}), 404
         
-        device_ids = user.get("devices", [])
-
+        devices = user.get("devices", [])
+        print(devices)
         new_commands = []
-        for device in device_ids:
+        for device in devices:
             command_data = {
                 "_id": str(uuid.uuid4()),
                 "name": name,
@@ -118,6 +118,7 @@ def create_commands_for_multiple_devices():
                 "device_id": device.device_id,
                 "status": "pending"  # default status
             }
+            print(command_data)
             commands_collection.insert_one(command_data)
             new_commands.append(command_data)
 

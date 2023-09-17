@@ -1,3 +1,21 @@
 2023-09-16 22:57:26,931:WARNING: * Debugger is active!
 2023-09-16 22:57:26,963:INFO: * Debugger PIN: 203-566-198
 2023-09-16 22:57:29,469:INFO:127.0.0.1 - - [16/Sep/2023 22:57:29] "GET / HTTP/1.1" 200 -
+2023-09-17 02:31:03,203:INFO:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://localhost:5001
+2023-09-17 02:31:03,203:INFO:[33mPress CTRL+C to quit[0m
+2023-09-17 02:31:03,204:INFO: * Restarting with stat
+2023-09-17 02:31:05,667:WARNING: * Debugger is active!
+2023-09-17 02:31:05,710:INFO: * Debugger PIN: 203-566-198
+2023-09-17 04:06:27,385:INFO:127.0.0.1 - - [17/Sep/2023 04:06:27] "[31m[1mGET /users/ HTTP/1.1[0m" 400 -
+2023-09-17 04:06:27,432:INFO:127.0.0.1 - - [17/Sep/2023 04:06:27] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2023-09-17 05:09:26,655:INFO: * Detected change in '/Users/collinrijock/Developer/pma-it-suite/backend/app.py', reloading
+2023-09-17 05:09:27,148:INFO: * Restarting with stat
+2023-09-17 05:09:29,637:WARNING: * Debugger is active!
+2023-09-17 05:09:29,665:INFO: * Debugger PIN: 203-566-198
+2023-09-17 05:10:02,444:INFO: * Detected change in '/Users/collinrijock/Developer/pma-it-suite/backend/app.py', reloading
+2023-09-17 05:10:02,973:INFO: * Restarting with stat
+2023-09-17 05:10:04,451:WARNING: * Debugger is active!
+2023-09-17 05:10:04,475:INFO: * Debugger PIN: 203-566-198
+2023-09-17 05:10:05,515:INFO: * Detected change in '/Users/collinrijock/Developer/pma-it-suite/backend/app.py', reloading
+2023-09-17 05:10:06,041:INFO: * Restarting with stat
