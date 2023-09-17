@@ -1,0 +1,19 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main # or any branch of your choice
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to server
+        run: |
+          rsync -r . adminuser@172.178.91.48:/home/adminuser/
+          ssh adminuser@172.178.91.48 'sh deploy_script.sh'
