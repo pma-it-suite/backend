@@ -56,3 +56,33 @@ def update_command_status(command_id):
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
+    
+@devices.route('/device/<device_id>/command', methods=['POST'])
+def create_command(device_id):
+    try:
+        data = request.json
+        name = data.get("name")
+        args = data.get("args")
+
+        if not name:
+            return jsonify({"status": "error", "message": "Command name is required"}), 400
+        if not args:
+            return jsonify({"status": "error", "message": "Arguments are required"}), 400
+
+        # Prepare command data
+        command_data = {
+            "_id": str(ObjectId()),
+            "name": name,
+            "args": args,
+            "device_id": device_id,
+            "status": "pending"  # default status
+        }
+
+        # Insert command into MongoDB
+        commands_collection.insert_one(command_data)
+
+        return jsonify({"status": "OK", "message": f"Command created successfully for device {device_id}", "newCommand": command_data}), 201
+
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "message": "An error occurred"}), 500
