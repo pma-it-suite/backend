@@ -89,3 +89,34 @@ def create_command():
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
+    
+@commands_routes.route('/batch', methods=['POST'])
+def create_commands_for_multiple_devices():
+    try:
+        data = request.json
+        device_ids = data.get("device_ids")
+        name = data.get("name")
+        args = data.get("args")
+
+        if not device_ids:
+            return jsonify({"status": "error", "message": "Device IDs are required"}), 400
+        if not name:
+            return jsonify({"status": "error", "message": "Command name is required"}), 400
+
+        new_commands = []
+        for device_id in device_ids:
+            command_data = {
+                "_id": str(uuid.uuid4()),  # Use uuid instead of ObjectId
+                "name": name,
+                "args": args,
+                "device_id": device_id,
+                "status": "pending"  # default status
+            }
+            commands_collection.insert_one(command_data)
+            new_commands.append(command_data)
+
+        return jsonify({"status": "OK", "message": "Commands created successfully", "newCommands": new_commands}), 201
+
+    except Exception as e:
+        print(e)
+        return jsonify({"status": "error", "message": "An error occurred"}), 500
