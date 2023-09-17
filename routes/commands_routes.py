@@ -1,5 +1,6 @@
 # commands_routes.py
 from flask import Blueprint, request, jsonify
+from flask_cors import cross_origin
 from pymongo import DESCENDING
 import uuid
 from config.db import get_database
@@ -14,6 +15,7 @@ commands_collection = db["commands"]
 members_collection = db["members"]
 
 @commands_routes.route('/recent', methods=['GET'])
+@cross_origin()
 def get_most_recent_command():
     try:
         device_id = request.args.get('device_id')
@@ -40,6 +42,7 @@ def get_most_recent_command():
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
 @commands_routes.route('/status', methods=['PATCH'])
+@cross_origin()
 def update_command_status():
     try:
         command_id = request.args.get('command_id')
@@ -63,6 +66,7 @@ def update_command_status():
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
 @commands_routes.route('/', methods=['POST'])
+@cross_origin()
 def create_command():
     try:
         data = request.json
@@ -90,6 +94,7 @@ def create_command():
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
     
 @commands_routes.route('/batch', methods=['POST'])
+@cross_origin()
 def create_commands_for_multiple_devices():
     try:
         data = request.json
@@ -129,6 +134,7 @@ def create_commands_for_multiple_devices():
         return jsonify({"status": "error", "message": "An error occurred"}), 500
     
 @commands_routes.route('/status', methods=['GET'])
+@cross_origin()
 def get_command_status():
     try:
         command_id = request.args.get('command_id')
@@ -149,6 +155,7 @@ def get_command_status():
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
 @commands_routes.route('/delete_pending', methods=['DELETE'])
+@cross_origin()
 def delete_pending_commands():
     try:
         # Delete all commands with status 'pending'

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_cors import cross_origin
 from config.db import get_database
 from bson.objectid import ObjectId
 import random
@@ -12,6 +13,7 @@ db = client["pma-it-suite"]
 users_collection = db["members"]
 
 @user_routes.route('/check', methods=['GET'])
+@cross_origin()
 def check_username():
     username = request.args.get('username')
     if username is None:
@@ -43,6 +45,7 @@ def create_user():
         return jsonify({"status": "error", "message": f"An error occurred: {str(e)}"}), 500
 
 @user_routes.route('/', methods=['GET'])
+@cross_origin()
 def read_user():
     username = request.args.get('username')
     if username is None:
@@ -56,6 +59,7 @@ def read_user():
         return jsonify({"status": "NO", "message": "User not found"}), 404
 
 @user_routes.route('/', methods=['PUT'])
+@cross_origin()
 def update_user():
     data = request.json
     username = data.get("username")
@@ -71,6 +75,7 @@ def update_user():
         return jsonify({"status": "NO", "message": "User not found or not modified"}), 404
 
 @user_routes.route('/', methods=['DELETE'])
+@cross_origin()
 def delete_user():
     username = request.args.get('username')
     if username is None:

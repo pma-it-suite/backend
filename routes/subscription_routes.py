@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_cors import cross_origin
 from config.db import get_database
 
 subscription_routes = Blueprint('subscription_routes', __name__)
@@ -9,6 +10,7 @@ db = client["pma-it-suite"]
 users_collection = db["members"]
 
 @subscription_routes.route('/', methods=['GET'])
+@cross_origin()
 def get_users_in_subscription():
     subscription_id = request.args.get('subscription_id')
     if subscription_id is None:
