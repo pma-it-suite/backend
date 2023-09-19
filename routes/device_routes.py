@@ -56,7 +56,8 @@ def register_device():
 
         return jsonify({
             "message":
-            f"User {user['username']} updated with device {device_id} successfully"
+            f"User {user['username']} updated with device {device_id} successfully",
+            "device_id": device_id
         }), 200
     except Exception as e:
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
