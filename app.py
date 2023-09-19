@@ -37,7 +37,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     SERVER_HOST = 'localhost' if args.debug else '0.0.0.0'
-    SERVER_PORT = 8080 if args.debug else '8080'
+    SERVER_PORT = 8080 if args.debug else '5001'
     
     if args.debug:
         app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
