@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from routes.users import router as user_router
 import logging
 import argparse
 
@@ -7,6 +8,8 @@ logging.basicConfig(filename='logs.txt',
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
 app = FastAPI()
+
+app.include_router(user_router)
 
 
 @app.get("/")
