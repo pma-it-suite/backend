@@ -167,7 +167,9 @@ def create_commands_for_multiple_devices():
             }), 404
 
         devices = user.get("devices", [])
-        print(devices)
+        print("devices: ", devices)
+        device_ids = user.get("device_ids", [])
+        print("device_ids: ", device_ids)
         new_commands = []
         for device in devices:
             command_data = {

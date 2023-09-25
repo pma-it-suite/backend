@@ -1,10 +1,5 @@
-from flask import Flask, jsonify
-from routes.user_routes import user_routes
-from routes.subscription_routes import subscription_routes
-from routes.commands_routes import commands_routes
-from routes.device_routes import devices_routes
-from flask_cors import CORS
-from config.main import SERVER_HOST, SERVER_PORT
+from fastapi import FastAPI
+from routes.users import router as user_router
 import logging
 import argparse
 
@@ -12,28 +7,17 @@ logging.basicConfig(filename='logs.txt',
                     level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-app = Flask(__name__)
-CORS(app,
-     resources={
-         r"/*": {
-             "origins": "*",
-             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-             "allow_headers": "*"
-         }
-     })
+app = FastAPI()
 
-app.register_blueprint(user_routes, url_prefix='/users')
-app.register_blueprint(subscription_routes, url_prefix='/subscriptions')
-app.register_blueprint(commands_routes, url_prefix='/commands')
-app.register_blueprint(devices_routes, url_prefix='/devices')
+app.include_router(user_router)
 
 
-# Test endpoint at root URL
-@app.route('/', methods=['GET'])
-def test_endpoint():
-    return jsonify({"message": "Hello, FELIPE!"})
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
 
 
+"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run the app in debug or production mode.')
@@ -58,3 +42,4 @@ if __name__ == '__main__':
                 host=SERVER_HOST,
                 port=SERVER_PORT,
                 ssl_context=context)
+"""
