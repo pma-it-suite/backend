@@ -45,11 +45,12 @@ if __name__ == '__main__':
 
     SERVER_HOST = 'localhost' if args.debug else '0.0.0.0'
     SERVER_PORT = 8080 if args.debug else '5001'
-    
+
     if args.debug:
         app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
     else:
-        file_base = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/its.kdns.ooo/its.kdns.ooo"
+        domain_name = "itx.kdns.ooo"
+        file_base = f"/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/{domain_name}/{domain_name}"
         cert = file_base + ".crt"
         key = file_base + ".key"
         context = (cert, key)
