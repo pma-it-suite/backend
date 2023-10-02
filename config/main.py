@@ -15,4 +15,4 @@ if not DB_URI:
     raise Exception("Key Error: DB_URI not set!")
 
 DB_NAME = "pma-it-suite"
-USERS_COLLECTION_NAME = "users"
+USERS_COLLECTION_NAME = "members"
