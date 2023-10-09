@@ -6,7 +6,7 @@ EmailStr = str
 RaisesException = NoReturn
 
 
-class BaseUserModel(BaseModel):
+class BaseModelWithId(BaseModel):
     id: Optional[Id] = Field(default=None, alias="_id")
 
     def get_id(self) -> str:

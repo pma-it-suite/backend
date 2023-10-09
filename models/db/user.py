@@ -1,26 +1,10 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Any
 from .metadata import Metadata
-from .common import Id, BaseUserModel
+from .common import Id, BaseModelWithId
 
 
-class DbUser(BaseUserModel):
-    name: Optional[str] = None
-    email: Optional[str] = None
-    metadata: Optional[Metadata] = None
-    user_secret_hash: Optional[str] = None
-    password_hash: Optional[str] = None
-    subscription_id: Optional[Id] = None
-    tenant_id: Optional[Id] = None
-    device_ids: Optional[list[Id]] = None
-    role_id: Optional[Id] = None
-
-
-RawUser = dict[str, any]
-
-
-class _DbUser(BaseModel):
-    _id: Id
+class DbUser(BaseModelWithId):
     name: str
     email: str
     metadata: Optional[Metadata] = None
