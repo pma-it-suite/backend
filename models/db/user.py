@@ -14,3 +14,6 @@ class DbUser(BaseModelWithId):
     tenant_id: Id
     device_ids: list[Id]
     role_id: Id
+
+
+RawUser = dict[str, Any]
