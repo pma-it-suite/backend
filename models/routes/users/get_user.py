@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from models.db.user import Users
+from models.db.user import DbUser
 
 
-class GetUserResponse(Users):
+class GetUserResponse(DbUser):
     pass

@@ -2,10 +2,12 @@ from fastapi import APIRouter
 from config.db import get_database
 from config.main import DB_NAME, USERS_COLLECTION_NAME
 from bson.objectid import ObjectId
+from typing import Optional
 import models.routes.users as models
-from models.db.common import Id
-import random
-from utils.errors import DefaultDataNotFoundException, InvalidDataException
+from models.db.common import Id, EmailStr, RaisesException
+from models.db.user import DbUser, RawUser
+from utils.errors import DefaultDataNotFoundException, InvalidDataException, InvalidPasswordException
+from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404
 
 router = APIRouter()
 ROUTE_BASE = "/users"
@@ -17,41 +19,41 @@ db = client[DB_NAME]
 users_collection = db[USERS_COLLECTION_NAME]
 
 
-@router.get(ROUTE_BASE + '/',
+@router.get(ROUTE_BASE + '/get',
             response_model=models.get_user.GetUserResponse,
             summary="Get user by id",
             tags=[TAG],
             status_code=200)
 def get_user(user_id: Id):
-    _validate_user_id_or_throw(user_id)
+    validate_user_id_or_throw(user_id)
 
-    user = users_collection.find_one({"_id": user_id})
+    user = get_db_user_or_throw_if_404(user_id)
+    return models.get_user.GetUserResponse(**user.dict())
 
-    if user:
-        return models.get_user.GetUserResponse(**user)
+
+@router.post(ROUTE_BASE + '/register',
+             response_model=models.RegisterUserResponse,
+             summary="Register user",
+             tags=[TAG],
+             status_code=201)
+def register_user(user_register_form: models.RegisterUserRequest):
+    user = get_db_user_or_throw_if_404(user_id)
+    msg = f"invalid password for user_id: {user_id}"
+    raise InvalidPasswordException(detail=msg)
+
+
+@router.post(ROUTE_BASE + '/login',
+             response_model=models.LoginUserResponse,
+             summary="Login user",
+             tags=[TAG],
+             status_code=200)
+def login_user(login_form: models.LoginUserRequest):
+    user_id = login_form.user_id
+    validate_user_id_or_throw(user_id)
+
+    user = get_db_user_or_throw_if_404(user_id)
+    if login_form.password_hash == user.password_hash:
+        return models.LoginUserResponse()
     else:
-        msg = f"no user found with user id: {user_id}"
-        raise DefaultDataNotFoundException(detail=msg)
-
-
-@router.get(ROUTE_BASE + '/check',
-            response_model=models.CheckUserResponse,
-            summary="Check user by user_id",
-            tags=[TAG],
-            status_code=200)
-def check_username(user_id: Id):
-    _validate_user_id_or_throw(user_id)
-
-    user = users_collection.find_one({"_id": user_id})
-
-    if user:
-        return models.get_user.GetUserResponse(**user)
-    else:
-        msg = f"no user found with user id: {user_id}"
-        raise DefaultDataNotFoundException(detail=msg)
-
-
-def _validate_user_id_or_throw(user_id: Id):
-    if not user_id:
-        msg = f"invalid request - user id must be set"
-        raise InvalidDataException(detail=msg)
+        msg = f"invalid password for user_id: {user_id}"
+        raise InvalidPasswordException(detail=msg)
