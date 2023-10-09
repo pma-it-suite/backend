@@ -1,11 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Any
 from .metadata import Metadata
-from .common import Id
+from .common import Id, BaseUserModel
 
 
-class DbUser(BaseModel):
-    _id: Optional[Id] = None
+class DbUser(BaseUserModel):
     name: Optional[str] = None
     email: Optional[str] = None
     metadata: Optional[Metadata] = None
