@@ -1,5 +1,8 @@
-from pydantic import BaseModel
+from .common import Id, BaseModelWithId
 
 
-class Command(BaseModel):
-    pass
+class Command(BaseModelWithId):
+    status: str
+    args: str
+    name: str
+    issuer_id: Id

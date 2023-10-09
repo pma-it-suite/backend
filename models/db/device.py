@@ -1,10 +1,9 @@
-from pydantic import BaseModel
-from .common import Id
+from .common import Id, BaseModelWithId
+from .metadata import Metadata
 from typing import Optional
 
 
-class Device(BaseModel):
-    _id: Id
+class Device(BaseModelWithId):
     name: str
     user_id: Id
     metadata: Optional[Metadata]
