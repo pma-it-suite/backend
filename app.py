@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from routes.users import router as user_router
 import logging
 import argparse
@@ -10,6 +10,17 @@ logging.basicConfig(filename='logs.txt',
 app = FastAPI()
 
 app.include_router(user_router)
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """
+    Middleware that logs incoming and outgoing requests.
+    """
+    logging.info(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    logging.info(f"Outgoing response: {response.status_code}")
+    return response
 
 
 @app.get("/")

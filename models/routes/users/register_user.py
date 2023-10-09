@@ -12,4 +12,4 @@ class RegisterUserRequest(BaseModel):
 
 
 class RegisterUserResponse(BaseModel):
-    pass
+    user_id: Id

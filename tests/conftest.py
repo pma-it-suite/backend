@@ -66,8 +66,8 @@ def run_around_tests():
 
 @pytest.fixture(scope='function')
 def registered_user(
-    registered_user_factory: Callable[[],
-                                      db_models.DbUser]) -> db_models.DbUser:
+    registered_user_factory: Callable[[], db_models.user.DbUser]
+) -> db_models.user.DbUser:
     """
     Fixture that generates a random valid user and registers it directly to
     the database through the `util` method.
@@ -100,12 +100,12 @@ def registered_user_factory(
 
 
 @pytest.fixture(scope='function')
-def unregistered_user() -> db_models.DbUser:
+def unregistered_user() -> db_models.user.DbUser:
     """
     Fixture that generates a valid user and returns it
     WITHOUT registering it to the database first.
     """
-    return generate_random_user()
+    return generate_random_db_user()
 
 
 @pytest.fixture(scope='function')
@@ -131,7 +131,7 @@ def user_registration_form_factory(
         Generates a random user data dict and then casts it into
         a registration form, and returns it
         """
-        user_dict = generate_random_user().dict()
+        user_dict = generate_random_register_user_request().dict()
         return user_models.register_user.RegisterUserRequest(**user_dict)
 
     return _create_user_reg_form
@@ -139,7 +139,7 @@ def user_registration_form_factory(
 
 def register_user_reg_form_to_db(
     reg_form: user_models.register_user.RegisterUserRequest
-) -> db_models.DbUser:
+) -> db_models.user.DbUser:
     """
     Helper function for registering a user given a registration form
     and returning the user data.
@@ -160,7 +160,7 @@ def register_user_reg_form_to_db(
 
 def get_user_from_user_reg_form(
     user_reg_form: user_models.register_user.RegisterUserRequest
-) -> db_models.DbUser:
+) -> db_models.user.DbUser:
     """
     Helper method that correctly casts a `UserRegistrationForm` into
     a valid `User` object and returns it.
@@ -174,7 +174,7 @@ def get_user_from_user_reg_form(
         device_ids: [],
         **user_reg_form.dict()
     }
-    user_object = db_models.DbUser(**dbuser_dict.dict())
+    user_object = db_models.user.DbUser(**dbuser_dict.dict())
     return user_object
 
 
@@ -185,25 +185,40 @@ def test_hash_pwd(pwd: str) -> str:
     return str + "-hash"
 
 
-def generate_random_user(
-    #user_type: db_models.DbUserTypeEnum = db_models.DbUserTypeEnum.PUBLIC_USER TODO: fixme
-) -> db_models.DbUser:
+def generate_random_db_user() -> db_models.user.DbUser:
     """
     Uses a fake data generator to generate a unique
     and valid user object.
-
-    Defaults to regular (public) user, but can optionally return an admin user.
     """
     fake = Faker()
     user_data = {
         "name": f"{fake.first_name()} {fake.last_name()}",
         "email": fake.email(),
         "metadata": {},
-        "password_harsh": fake.password(),
+        "password_hash": fake.password(),
         "user_secret_hash": fake.password(),
         "tenant_id": fake.uuid4(),
+        "subscription_id": fake.uuid4(),
         "device_ids": [fake.uuid4(), fake.uuid4()],
         "role_id": fake.uuid4(),
         "_id": fake.uuid4()
     }
-    return db_models.DbUser(**user_data)
+    return db_models.user.DbUser(**user_data)
+
+
+def generate_random_register_user_request(
+) -> user_models.register_user.RegisterUserRequest:
+    """
+    Uses a fake data generator to generate a unique
+    and valid user object.
+    """
+    fake = Faker()
+    user_data = {
+        "name": f"{fake.first_name()} {fake.last_name()}",
+        "email": fake.email(),
+        "raw_password": fake.password(),
+        "tenant_id": fake.uuid4(),
+        "role_id": fake.uuid4(),
+        "subscription_id": fake.uuid4(),
+    }
+    return user_models.register_user.RegisterUserRequest(**user_data)

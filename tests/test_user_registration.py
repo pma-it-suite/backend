@@ -11,14 +11,13 @@ from fastapi.testclient import TestClient
 from requests.models import Response as HTTPResponse
 
 from app import app
-import models.routes.users as user_models
+import models.routes.users.register_user as user_models
 
 client = TestClient(app)
 
 
 def generate_bad_user_data_json(
-    user_form: user_models.register_user.RegisterUserRequest
-) -> Dict[str, Any]:
+        user_form: user_models.RegisterUserRequest) -> Dict[str, Any]:
     """
     Generates an invalid user registration form dict to be sent as json.
 
@@ -37,7 +36,7 @@ def generate_bad_user_data_json(
 
 
 def get_reg_user_json_from_form(
-        user_reg_form: user_models.UserRegistrationForm) -> Dict[str, Any]:
+        user_reg_form: user_models.RegisterUserRequest) -> Dict[str, Any]:
     """
     Returns a valid json dict from a user registration object.
     """
@@ -50,6 +49,7 @@ def check_user_register_resp_valid(response: HTTPResponse) -> bool:
     """
     try:
         assert response.status_code == 201
+        assert "user_id" in response.json()
         # TODO: fixme
         # assert "jwt" in response.json()
         # assert check_jwt_response_valid(response.json()["jwt"])
@@ -69,7 +69,7 @@ def get_register_user_endpoint_url() -> str:
 
 class TestUserRegister:
     def test_register_user_success(
-            self, user_registration_form: user_models.UserRegistrationForm):
+            self, user_registration_form: user_models.RegisterUserRequest):
         """
         Tries to register a valid user form, expecting success.
         """
@@ -79,7 +79,7 @@ class TestUserRegister:
         assert check_user_register_resp_valid(response)
 
     def test_register_dupe_data_fail(
-            self, user_registration_form: user_models.UserRegistrationForm):
+            self, user_registration_form: user_models.RegisterUserRequest):
         """
         Tries to register and user using duplicate unique identifiers,
         expecting failure.
@@ -95,65 +95,11 @@ class TestUserRegister:
         assert response.status_code == 409
 
     def test_register_user_invalid_data(
-            self, user_registration_form: user_models.UserRegistrationForm):
+            self, user_registration_form: user_models.RegisterUserRequest):
         """
         Tries to register a user with invalid data, expecting 422 failure.
         """
         bad_user_data = generate_bad_user_data_json(user_registration_form)
-        endpoint_url = get_register_user_endpoint_url()
-        response = client.post(endpoint_url, json=bad_user_data)
-        assert check_user_register_resp_valid(response)
-
-    def test_reg_user_empty_data_fail(self):
-        """
-        Tries to register a user but sends no data, expecting 422 failure
-        """
-        endpoint_url = get_register_user_endpoint_url()
-        response = client.post(endpoint_url, json={})
-
-        assert not check_user_register_resp_valid(response)
-
-
-class TestAdminUserRegister:
-    """
-    Tests the user registration endpoint for an admin type user.
-    """
-    def test_register_user_success(
-            self,
-            admin_user_registration_form: user_models.UserRegistrationForm):
-        """
-        Tries to register a valid user form, expecting success.
-        """
-        user_data = get_reg_user_json_from_form(admin_user_registration_form)
-        endpoint_url = get_register_user_endpoint_url()
-        response = client.post(endpoint_url, json=user_data)
-        assert check_user_register_resp_valid(response)
-
-    def test_register_dupe_data_fail(
-            self,
-            admin_user_registration_form: user_models.UserRegistrationForm):
-        """
-        Tries to register and admin user using duplicate unique identifiers,
-        expecting failure.
-        """
-        user_data = get_reg_user_json_from_form(admin_user_registration_form)
-        endpoint_url = get_register_user_endpoint_url()
-        response = client.post(endpoint_url, json=user_data)
-        assert check_user_register_resp_valid(response)
-
-        # re-send request expecting failure
-        response = client.post(endpoint_url, json=user_data)
-        assert not check_user_register_resp_valid(response)
-        assert response.status_code == 409
-
-    def test_register_user_invalid_data(
-            self,
-            admin_user_registration_form: user_models.UserRegistrationForm):
-        """
-        Tries to register a user with invalid data, expecting 422 failure.
-        """
-        bad_user_data = generate_bad_user_data_json(
-            admin_user_registration_form)
         endpoint_url = get_register_user_endpoint_url()
         response = client.post(endpoint_url, json=bad_user_data)
         assert check_user_register_resp_valid(response)

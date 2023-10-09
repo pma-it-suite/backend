@@ -10,7 +10,17 @@ import os
 from uuid import uuid4
 from typing import Dict, Any
 from pymongo import MongoClient, IndexModel
-from config.main import DB_URI
+from config.main import DB_URI, USERS_COLLECTION_NAME
+
+
+def get_users_collection():
+    """
+    explicit handle alias for users collection
+    """
+    client = get_database()
+    db = client[get_database_client_name()]
+    users_collection = db[USERS_COLLECTION_NAME]
+    return users_collection
 
 
 def get_database() -> MongoClient:
@@ -62,7 +72,7 @@ def _get_database_name_str() -> str:
         test_db_name = _generate_test_database_name()
         return test_db_name
 
-    production_db_name = "underline"
+    production_db_name = "itx"
     return production_db_name
 
 
@@ -171,7 +181,7 @@ class Database:
         """
 
         indexes_dict = {
-            "users": [IndexModel("email", unique=True)],
+            "members": [IndexModel("email", unique=True)],
         }
 
         return indexes_dict
@@ -206,7 +216,7 @@ class Database:
         """
 
         indexes_dict = {
-            "users": {
+            "members": {
                 '_id_': {
                     'v': 2,
                     'key': [('_id', 1)]
