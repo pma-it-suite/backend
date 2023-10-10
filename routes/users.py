@@ -11,7 +11,7 @@ from utils.errors import (
     InvalidPasswordException,
 )
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
-from utils.auth import get_auth_token_from_user_id
+from utils.auth import get_auth_token_from_user_id, hash_and_compare
 import utils.errors as exceptions
 import logging
 
@@ -66,8 +66,9 @@ async def login_user(login_form: models.LoginUserRequest):
     validate_user_id_or_throw(user_id)
 
     user = get_db_user_or_throw_if_404(user_id)
-    if login_form.password_hash == user.password_hash:
-        return models.LoginUserResponse()
+    if hash_and_compare(login_form.password, user.password_hash):
+        auth_token_str = await get_auth_token_from_user_id(user_id)
+        return models.LoginUserResponse(jwt=auth_token_str)
     else:
         msg = f"invalid password for user_id: {user_id}"
         raise InvalidPasswordException(detail=msg)

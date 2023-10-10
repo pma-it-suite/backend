@@ -229,7 +229,10 @@ def test_hash_pwd(pwd: str) -> str:
     return pwd + "-hash"
 
 
-def generate_random_db_user() -> db_models.user.DbUser:
+def generate_random_db_user(
+    user_type: Optional[
+        db_models.user.UserTypeEnum] = db_models.user.UserTypeEnum.USER
+) -> db_models.user.DbUser:
     """
     Uses a fake data generator to generate a unique
     and valid user object.
@@ -245,12 +248,14 @@ def generate_random_db_user() -> db_models.user.DbUser:
         "subscription_id": fake.uuid4(),
         "device_ids": [fake.uuid4(), fake.uuid4()],
         "role_id": fake.uuid4(),
-        "_id": fake.uuid4()
+        "user_type": user_type,
     }
     return db_models.user.DbUser(**user_data)
 
 
 def generate_random_register_user_request(
+    user_type: Optional[
+        db_models.user.UserTypeEnum] = db_models.user.UserTypeEnum.USER
 ) -> user_models.register_user.RegisterUserRequest:
     """
     Uses a fake data generator to generate a unique
@@ -264,5 +269,6 @@ def generate_random_register_user_request(
         "tenant_id": fake.uuid4(),
         "role_id": fake.uuid4(),
         "subscription_id": fake.uuid4(),
+        "user_type": user_type,
     }
     return user_models.register_user.RegisterUserRequest(**user_data)

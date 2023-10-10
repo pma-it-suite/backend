@@ -1,7 +1,13 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Any
 from .metadata import Metadata
-from .common import Id, BaseModelWithId
+from .common import Id, BaseModelWithId, AutoName
+from enum import auto
+
+
+class UserTypeEnum(AutoName):
+    USER = auto()
+    ADMIN = auto()
 
 
 class DbUser(BaseModelWithId):
@@ -14,6 +20,7 @@ class DbUser(BaseModelWithId):
     tenant_id: Id
     device_ids: list[Id]
     role_id: Id
+    user_type: UserTypeEnum
 
 
 class DbUserRedacted(BaseModelWithId):

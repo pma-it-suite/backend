@@ -1,6 +1,7 @@
 from typing import NoReturn, Optional, Any
 from pydantic import Field, BaseModel, validator
 from uuid import uuid4
+from enum import Enum
 
 Id = str
 EmailStr = str
@@ -28,6 +29,22 @@ class BaseModelWithId(BaseModel):
         parent_dict = super().dict(*args, **kwargs)
         parent_dict["_id"] = self.get_id()
         return parent_dict
+
+
+class AutoName(Enum):
+    """
+    Hacky but abstracted-enough solution to the dumb enum naming problem that
+    python has. Basically returns enums in string form when referenced by value
+    """
+
+    # since this is a funky should-be-private method, we have to break
+    # a couple of lint rules
+    # pylint: disable=unused-argument, no-self-argument
+    def _generate_next_value_(name, start, count, last_values):
+        """
+        Returns name of enum rather than assigned value.
+        """
+        return name
 
 
 def _generate_uuid4_str() -> str:

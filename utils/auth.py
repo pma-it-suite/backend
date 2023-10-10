@@ -138,3 +138,9 @@ async def get_auth_token_from_user_id(user_id: common_models.Id) -> str:
     payload_dict = {'user_id': user_id}
     encoded_jwt_str = Token.get_enc_token_str_from_dict(payload_dict)
     return encoded_jwt_str
+
+
+def hash_and_compare(raw: str, hash_to_compare: str) -> bool:
+    encoded = raw.encode('utf-8')
+    hash = str(bcrypt.hashpw(encoded, bcrypt.gensalt()))
+    return hash == hash_to_compare
