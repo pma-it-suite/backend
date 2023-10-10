@@ -50,9 +50,7 @@ def check_user_register_resp_valid(response: HTTPResponse) -> bool:
     try:
         assert response.status_code == 201
         assert "user_id" in response.json()
-        # TODO: fixme
-        # assert "jwt" in response.json()
-        # assert check_jwt_response_valid(response.json()["jwt"])
+        assert "jwt" in response.json()
         return True
     except AssertionError as assert_error:
         debug_msg = f"failed at: {assert_error}. resp json: {response.json()}"

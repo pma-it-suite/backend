@@ -8,4 +8,4 @@ class LoginUserRequest(BaseModel):
 
 
 class LoginUserResponse(BaseModel):
-    pass
+    jwt: str

@@ -16,3 +16,9 @@ if not DB_URI:
 
 DB_NAME = "itx"
 USERS_COLLECTION_NAME = "members"
+
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+if not JWT_SECRET_KEY:
+    raise Exception("Key Error: JWT_SECRET_KEY not set!")
+
+JWT_EXPIRY_TIME = 3000

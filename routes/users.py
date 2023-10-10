@@ -11,6 +11,7 @@ from utils.errors import (
     InvalidPasswordException,
 )
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
+from utils.auth import get_auth_token_from_user_id
 import utils.errors as exceptions
 import logging
 
@@ -46,7 +47,11 @@ async def get_user(user_id: Id):
 async def register_user(user_register_form: models.RegisterUserRequest):
     user_id = register_user_to_db(user_register_form)
 
-    return models.RegisterUserResponse(**{"user_id": user_id})
+    auth_token_str = await get_auth_token_from_user_id(user_id)
+    return models.RegisterUserResponse(**{
+        "user_id": user_id,
+        "jwt": auth_token_str
+    })
 
 
 @router.post(

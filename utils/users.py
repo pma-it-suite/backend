@@ -77,3 +77,7 @@ def register_user_to_db(user_register_form: RegisterUserRequest) -> Id:
 
     user_id = str(result.inserted_id)
     return user_id
+
+
+def check_if_admin_by_id(user_id: Id) -> bool:
+    return True

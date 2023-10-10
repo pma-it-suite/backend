@@ -13,3 +13,4 @@ class RegisterUserRequest(BaseModel):
 
 class RegisterUserResponse(BaseModel):
     user_id: Id
+    jwt: str
