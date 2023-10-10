@@ -8,13 +8,8 @@
 pytest `conftest.py` file that holds global fixtures for tests
 """
 import os
-import io
-import random
 import logging
-from enum import Enum
-from uuid import uuid4
-from datetime import datetime, timedelta
-from typing import List, Callable, Dict, Any, Tuple, Optional
+from typing import Callable, Dict, Any, Optional
 
 import pytest
 import fastapi

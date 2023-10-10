@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from routes.users import router as user_router
 import logging
-import argparse
 
 logging.basicConfig(filename='logs.txt',
                     level=logging.INFO,

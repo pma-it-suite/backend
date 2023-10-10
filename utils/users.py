@@ -5,7 +5,6 @@ from models.routes.users.register_user import RegisterUserRequest
 from models.db.common import Id, EmailStr, RaisesException
 from config.db import get_users_collection
 import bcrypt
-import uuid
 import pymongo.errors as pymongo_exceptions
 import pymongo.results as pymongo_results
 from icecream import ic

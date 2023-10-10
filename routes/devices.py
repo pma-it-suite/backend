@@ -2,8 +2,6 @@ from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
 from config.db import get_database
 from bson.objectid import ObjectId
-import random
-import string
 
 devices_routes = Blueprint('device_routes', __name__, url_prefix='/devices')
 

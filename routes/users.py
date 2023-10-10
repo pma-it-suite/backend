@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from config.db import get_users_collection
 from bson.objectid import ObjectId
-from typing import Optional
 import models.routes.users as models
 from models.db.common import Id, EmailStr, RaisesException
 from models.db.user import DbUser, RawUser
@@ -13,7 +12,6 @@ from utils.errors import (
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
 from utils.auth import get_auth_token_from_user_id, hash_and_compare
 import utils.errors as exceptions
-import logging
 
 router = APIRouter()
 ROUTE_BASE = "/users"

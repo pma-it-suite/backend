@@ -96,7 +96,7 @@ def delete_user():
         return jsonify(
             {"status": "error", "message": "Username is required"}), 400
 
-    result = users_collection.delete_one
+    users_collection.delete_one
 
 
 @user_routes.route('/delete_all', methods=['DELETE'])

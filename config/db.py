@@ -201,7 +201,7 @@ class Database:
                 indexes_match = db_collection.index_information() == index_dict
                 assert indexes_match
             return True
-        except AssertionError as _assert_error:
+        except AssertionError:
             return False
 
     def __get_master_dict_of_indexes(self) -> Dict[str, Any]:  # pylint: disable=no-self-use
