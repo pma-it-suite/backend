@@ -93,6 +93,7 @@ class Database:
     """
     Utility class that holds the main database client instance.
     """
+
     def __init__(self):
         """
         Creates a Database instance with a MongoClient set to the global DB_URI.
@@ -247,7 +248,7 @@ def _get_global_database_instance() -> Database:
     database_already_instanciated = __check_global_db_already_exists()
 
     if not database_already_instanciated:
-        global GLOBAL_DATABASE_INSTANCE  #pylint: disable=global-statement
+        global GLOBAL_DATABASE_INSTANCE  # pylint: disable=global-statement
         GLOBAL_DATABASE_INSTANCE = Database()
 
     return GLOBAL_DATABASE_INSTANCE

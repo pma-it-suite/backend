@@ -23,5 +23,11 @@ def lint():
     )
 
 
+def auto_pep():
+    os.system(
+        """find .  -path ./venv -prune -false -o -name "*.py" -exec autopep8 --aggressive --in-place {} +;"""
+    )
+
+
 if __name__ == '__main__':
-    fire.Fire({'run': run, 'test': test, "lint": lint})
+    fire.Fire({'run': run, 'test': test, "lint": lint, "autofmt": auto_pep})

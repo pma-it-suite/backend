@@ -18,7 +18,7 @@ import models.db.common as common_models
 
 
 async def check_header_token_is_admin(token: str = Header(
-    None)) -> common_models.Id:
+        None)) -> common_models.Id:
     """
     Will check for valid token and existing user, as well as
     making sure that the user is an admin.
@@ -63,7 +63,7 @@ async def get_auth_token_from_header(token: str = Header(None)) -> str:
 
 
 async def get_token_from_optional_header(token: Optional[str] = Header(
-    None)) -> str:
+        None)) -> str:
     """
     Attempts to get the auth token string from the request header,
     returning it if available, else returns None

@@ -42,7 +42,7 @@ def register_device():
 
         try:
             device_id = user["device_ids"] + device_id
-        except:
+        except BaseException:
             print(f"adding device id ({device_id}) to user ({user_id})...")
             device_ids = [device_id]
 

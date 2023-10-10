@@ -30,7 +30,7 @@ def generate_bad_user_data_json(
             assert not isinstance(value, int)
             assert not isinstance(value, float)
             new_val = int(value)
-        except:  # pylint: disable=bare-except
+        except BaseException:  # pylint: disable=bare-except
             new_val = str(value)
         user_dict[key] = new_val
     return user_dict
