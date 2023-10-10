@@ -18,6 +18,7 @@ from typing import List, Callable, Dict, Any, Tuple, Optional
 
 import pytest
 import fastapi
+from icecream import ic
 from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
@@ -26,6 +27,7 @@ from config.db import _get_global_database_instance
 import models.routes.users as user_models
 import models.db.common as common_models
 import models.db as db_models
+import utils.users as user_utils
 
 
 # startup process
@@ -65,6 +67,21 @@ def run_around_tests():
 
 
 @pytest.fixture(scope='function')
+def registered_user_redacted(
+    registered_user_redacted_factory: Callable[[],
+                                               db_models.user.DbUserRedacted]
+) -> db_models.user.DbUser:
+    """
+    Fixture that generates a random valid user and registers it directly to
+    the database through the `util` method.
+
+    Returns the original user object.
+    """
+    user = registered_user_redacted_factory()
+    return user
+
+
+@pytest.fixture(scope='function')
 def registered_user(
     registered_user_factory: Callable[[], db_models.user.DbUser]
 ) -> db_models.user.DbUser:
@@ -95,6 +112,27 @@ def registered_user_factory(
         user_reg_form = user_registration_form_factory()
         user_data = register_user_reg_form_to_db(user_reg_form)
         return user_data
+
+    return _create_and_register_user
+
+
+@pytest.fixture(scope='function')
+def registered_user_redacted_factory(
+    user_registration_form_factory: Callable[
+        [], user_models.register_user.RegisterUserRequest]
+) -> Callable[[], db_models.user.DbUserRedacted]:
+    """
+    Returns a factory that creates valid registered user and returns it's data
+    """
+    def _create_and_register_user(
+    ) -> user_models.register_user.RegisterUserRequest:
+        """
+        Uses a registration form factory to create a valid user on-command,
+        then registers it to the database and returns it.
+        """
+        user_reg_form = user_registration_form_factory()
+        user_data = register_user_reg_form_to_db(user_reg_form)
+        return db_models.user.DbUserRedacted(**user_data.dict())
 
     return _create_and_register_user
 
@@ -137,6 +175,17 @@ def user_registration_form_factory(
     return _create_user_reg_form
 
 
+@pytest.fixture(scope='function')
+def get_identifier_dict_from_user(
+) -> Callable[[db_models.user.DbUserRedacted], Dict[str, Any]]:
+    def _get_identifier_from_user(
+        user: db_models.user.DbUserRedacted | db_models.user.DbUser
+    ) -> Dict[str, Any]:
+        return {"user_id": user.get_id()}
+
+    return _get_identifier_from_user
+
+
 def register_user_reg_form_to_db(
     reg_form: user_models.register_user.RegisterUserRequest
 ) -> db_models.user.DbUser:
@@ -144,18 +193,13 @@ def register_user_reg_form_to_db(
     Helper function for registering a user given a registration form
     and returning the user data.
     """
-    return
-
-
-"""
     user_data = get_user_from_user_reg_form(reg_form)
 
     # user ID auto-instanciates so we reassign it to the actual ID
-    user_id = async_to_sync(user_utils.register_user)(reg_form)
+    user_id = user_utils.register_user_to_db(reg_form)
     user_data.id = user_id
 
     return user_data
-    """
 
 
 def get_user_from_user_reg_form(
@@ -167,14 +211,14 @@ def get_user_from_user_reg_form(
     """
     fake = Faker()
     dbuser_dict = {
-        _id: fake.uuid4(),
-        metadata: {},
-        user_secret_hash: fake.password(),
-        password_hash: test_hash_pwd(user_reg_form.raw_password),
-        device_ids: [],
+        "_id": fake.uuid4(),
+        "metadata": {},
+        "user_secret_hash": fake.password(),
+        "password_hash": test_hash_pwd(user_reg_form.raw_password),
+        "device_ids": [],
         **user_reg_form.dict()
     }
-    user_object = db_models.user.DbUser(**dbuser_dict.dict())
+    user_object = db_models.user.DbUser(**dbuser_dict)
     return user_object
 
 
@@ -182,7 +226,7 @@ def test_hash_pwd(pwd: str) -> str:
     """
     fixture for fake-hash
     """
-    return str + "-hash"
+    return pwd + "-hash"
 
 
 def generate_random_db_user() -> db_models.user.DbUser:

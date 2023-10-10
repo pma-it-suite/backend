@@ -16,4 +16,13 @@ class DbUser(BaseModelWithId):
     role_id: Id
 
 
+class DbUserRedacted(BaseModelWithId):
+    name: str
+    email: str
+    metadata: Optional[Metadata] = None
+    subscription_id: Id
+    tenant_id: Id
+    role_id: Id
+
+
 RawUser = dict[str, Any]
