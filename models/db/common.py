@@ -8,7 +8,12 @@ EmailStr = str
 RaisesException = NoReturn
 
 
-class BaseModelWithId(BaseModel):
+class BaseModelWithConfig(BaseModel):
+    class Config:
+        use_enum_values = True
+
+
+class BaseModelWithId(BaseModelWithConfig):
     id: Optional[Id] = Field(default="", alias="_id")
 
     def get_id(self) -> str:

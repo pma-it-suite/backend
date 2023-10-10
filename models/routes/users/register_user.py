@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from models.db.common import Id
+from models.db.common import Id, BaseModelWithConfig
 from models.db.user import UserTypeEnum
 
 
-class RegisterUserRequest(BaseModel):
+class RegisterUserRequest(BaseModelWithConfig):
     name: str
     email: str
     raw_password: str
