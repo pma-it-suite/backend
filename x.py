@@ -10,11 +10,13 @@ def run(debug=True):
     os.system(f"uvicorn app:app --reload --port={DEBUG_PORT}")
 
 
-def test(test_file=None):
+def test(test_file=None, args=None):
     if test_file:
-        os.system(f"python -m pytest -k {test_file}")
+        cmd = f"python -m pytest -k {test_file}"
     else:
-        os.system(f"python -m pytest")
+        cmd = f"python -m pytest"
+
+    os.system(f"{cmd} {args if args else ''}")
 
 
 def lint():

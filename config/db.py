@@ -10,7 +10,7 @@ import os
 from uuid import uuid4
 from typing import Dict, Any
 from pymongo import MongoClient, IndexModel
-from config.main import DB_URI, USERS_COLLECTION_NAME
+from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME
 
 
 def get_users_collection():
@@ -21,6 +21,16 @@ def get_users_collection():
     db = client[get_database_client_name()]
     users_collection = db[USERS_COLLECTION_NAME]
     return users_collection
+
+
+def get_commands_collection():
+    """
+    explicit handle alias for commands collection
+    """
+    client = get_database()
+    db = client[get_database_client_name()]
+    commands_collection = db[COMMANDS_COLLECTION_NAME]
+    return commands_collection
 
 
 def get_database() -> MongoClient:
@@ -93,7 +103,6 @@ class Database:
     """
     Utility class that holds the main database client instance.
     """
-
     def __init__(self):
         """
         Creates a Database instance with a MongoClient set to the global DB_URI.
