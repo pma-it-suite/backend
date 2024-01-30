@@ -4,7 +4,7 @@ from models.db.common import Id
 
 class LoginUserRequest(BaseModel):
     user_id: Id
-    password_hash: str
+    password: str
 
 
 class LoginUserResponse(BaseModel):

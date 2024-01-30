@@ -14,6 +14,7 @@ Tests both admin and regular user logins.
 """
 import logging
 from typing import Dict, Callable, Any
+from config.db import get_users_collection
 import pytest
 from fastapi.testclient import TestClient
 from requests.models import Response as HTTPResponse
@@ -57,9 +58,33 @@ def get_login_request_from_user(
         """
         identifier_dict = get_identifier_dict_from_user(user)
         password = user.password_hash
-        return {"user_id": identifier_dict, "password": password}
+        identifier_dict["password"] = password
+        return identifier_dict
 
     return __get_login_request_from_user
+
+@pytest.fixture
+def get_login_request_from_user_form(
+    get_identifier_dict_from_user: Callable[[user_models.DbUser], Dict[str,
+                                                                       Any]]
+) -> Dict[str, Any]:
+    """
+    Internal fixture that returns a `Callable` function which creates
+    and returns a valid json dict for the login endpoint given a user object.
+    """
+    def __get_login_request_from_user(user_form) -> Dict[str, Any]:
+        """
+        Returned internal method that takes in a user object and uses
+        the `get_identifier_dict_from_user` fixture in order to create
+        and return the correct json data dict for the endpoint.
+        """
+        identifier_dict = {"user_id": user_form.email}
+        password = user_form.raw_password
+        identifier_dict["password"] = password
+        return identifier_dict
+
+    return __get_login_request_from_user
+
 
 
 def check_user_login_response_valid(response: HTTPResponse) -> bool:
@@ -87,15 +112,16 @@ def check_jwt_valid(response: HTTPResponse) -> bool:
 
 class TestAttemptRegularDbUserLogin:
     def test_correct_pass(
-        self, registered_user: user_models.DbUser,
-        get_login_request_from_user: Callable[[user_models.DbUser],
+        self, registered_user_orig: user_models.DbUser,
+        get_login_request_from_user_form: Callable[[user_models.DbUser],
                                               Dict[str, Any]]):
         """
         Tries to login an existing user with valid credentials.
         Expects success and 200 response code
         """
         request_url = get_user_login_endpoint_url()
-        json_payload = get_login_request_from_user(registered_user)
+        _, registered_user_form = registered_user_orig
+        json_payload = get_login_request_from_user_form(registered_user_form)
         ic(json_payload)
         response = client.post(request_url, json=json_payload)
         assert check_user_login_response_valid(response)
@@ -132,5 +158,9 @@ class TestAttemptRegularDbUserLogin:
 
         response = client.post(request_url, json=nonexistent_user_payload)
         ic(nonexistent_user_payload)
+
+        ic(get_users_collection())
+
         assert not check_user_login_response_valid(response)
+        ic(response)
         assert response.status_code == 404

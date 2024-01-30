@@ -11,6 +11,7 @@ import os
 from uuid import uuid4
 from typing import Dict, Any
 from pymongo import MongoClient, IndexModel
+import pymongo.errors as pymongo_exceptions
 from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME
 
 
@@ -289,15 +290,36 @@ class MockResponse:
     
 
 class MockCollection:
-    def __init__(self):
+    def __init__(self, collection_name: str):
+        self.collection_name = collection_name
         self.mapping = {}
 
     def insert_one(self, data: dict[str, Any]) -> str:
-        self.mapping[data.get("_id")] = data
+        # do not allow dupes
+        if self.collection_name == USERS_COLLECTION_NAME:
+            if self.mapping.get(data.get("email")):
+                raise pymongo_exceptions.DuplicateKeyError("Duplicate key error")
+        if self.mapping.get(data.get("_id")):
+            raise pymongo_exceptions.DuplicateKeyError("Duplicate key error")
+
+        if self.collection_name == USERS_COLLECTION_NAME:
+            self.mapping[data.get("email")] = data
+        else:
+            self.mapping[data.get("_id")] = data
         return MockResponse(inserted_id=data.get("_id"))
     
     def find_one(self, data: dict[str, Any]) -> dict[str, Any]:
-        return self.mapping.get(data.get("_id"))
+        if self.collection_name == USERS_COLLECTION_NAME:
+            resp = self.mapping.get(data.get("email"))
+        else:
+            resp = self.mapping.get(data.get("_id"))
+
+        if resp == {}:
+            return None
+        return resp
+    
+    def __repr__(self) -> str:
+        return str(self.mapping)
 
 
 class MockMongoClient:
@@ -308,8 +330,8 @@ class MockMongoClient:
     def _setup_dict(self, db_name: str):
         self.inner = {
             db_name: {
-                USERS_COLLECTION_NAME: MockCollection(),
-                COMMANDS_COLLECTION_NAME: MockCollection()
+                USERS_COLLECTION_NAME: MockCollection(USERS_COLLECTION_NAME),
+                COMMANDS_COLLECTION_NAME: MockCollection(COMMANDS_COLLECTION_NAME)
             }
         }
 
@@ -354,11 +376,6 @@ class MockDatabase:
     
     def clear_test_collections(self) -> None:
         pass
-
-
-def __make_mock_db() -> MockDatabase():
-    db = MockDatabase()
-    return db
 
 
 def __check_global_db_already_exists() -> bool:  # pylint: disable=invalid-name

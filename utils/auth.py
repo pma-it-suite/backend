@@ -10,6 +10,7 @@ incoming JWT.
 from typing import Dict, Any, Optional
 
 from fastapi import Header
+import bcrypt
 
 from models.db.auth import Token
 import utils.errors as exceptions
@@ -141,6 +142,10 @@ async def get_auth_token_from_user_id(user_id: common_models.Id) -> str:
 
 
 def hash_and_compare(raw: str, hash_to_compare: str) -> bool:
-    encoded = raw.encode('utf-8')
-    hash = str(bcrypt.hashpw(encoded, bcrypt.gensalt()))
-    return hash == hash_to_compare
+    pass_to_check = raw.encode('utf-8')
+    user_pass = hash_to_compare.encode('utf-8')
+
+    if isinstance(hash_to_compare, str):
+        user_pass = hash_to_compare[2:-1].encode('utf-8')
+    passwords_match = bcrypt.checkpw(pass_to_check, user_pass)
+    return passwords_match

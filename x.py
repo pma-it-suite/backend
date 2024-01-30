@@ -12,18 +12,20 @@ def run(debug=True):
     """
     os.system(f"uvicorn app:app --reload --port={DEBUG_PORT}")
 
-def test(test_file=None, args=None):
+def test(name=None, args=None):
     """
     Runs pytest on the specified test file.
     If no test file is specified, runs pytest on all test files.
     Additional arguments for pytest can be passed with the args parameter.
     """
-    if test_file:
-        cmd = f"python -m pytest -k {test_file}"
+    if name:
+        cmd = f"python -m pytest -k {name}"
     else:
         cmd = f"python -m pytest"
 
-    os.system(f"{cmd} {args if args else ''}")
+    exec_str = f"{cmd} {args if args else ''}"
+    print("executing: ", exec_str)
+    os.system(exec_str)
 
 def lint():
     """

@@ -38,7 +38,7 @@ def _get_raw_user_from_db(user_identifier: Id | EmailStr) -> Optional[RawUser]:
 def _get_raw_user_or_throw_if_404(
         user_identifier: Id | EmailStr) -> RawUser | RaisesException:
     user_result = _get_raw_user_from_db(user_identifier)
-    if user_result is None:
+    if user_result is None or not user_result:
         msg = f"no user found with user identifier: {user_identifier}"
         raise DefaultDataNotFoundException(detail=msg)
     return user_result

@@ -100,6 +100,19 @@ def registered_user(
     user = registered_user_factory()
     return user
 
+@pytest.fixture(scope='function')
+def registered_user_orig(
+    registered_user_factory: Callable[[], db_models.user.DbUser]
+) -> db_models.user.DbUser:
+    """
+    Fixture that generates a random valid user and registers it directly to
+    the database through the `util` method.
+
+    Returns the original user object as well as the user reg form
+    """
+    user, user_reg_form = registered_user_factory()
+    return user, user_reg_form
+
 
 @pytest.fixture(scope='function')
 def registered_user_factory(
@@ -117,7 +130,7 @@ def registered_user_factory(
         """
         user_reg_form = user_registration_form_factory()
         user_data = register_user_reg_form_to_db(user_reg_form)
-        return user_data
+        return user_data, user_reg_form
 
     return _create_and_register_user
 
