@@ -72,6 +72,15 @@ def _is_testing() -> bool:
     return os.environ.get("_called_from_test") == "True"
 
 
+# Utils for the file that don't have any need to be actually inside the class
+def _is_testing_with_mock() -> bool:
+    """
+    Simple but dynamic function that returns the testing status.
+    Can be used for things other than database config.
+    """
+    return os.environ.get("_called_from_test_with_mock") == "True"
+
+
 def _get_database_name_str() -> str:
     """
     Dynamically return the name of the current database.
@@ -254,6 +263,9 @@ def _get_global_database_instance() -> Database:
     Assures that if you call this, the `global_database_instance` will
     be successfully instanciated before being returned.
     """
+    if _is_testing_with_mock():
+        return MockDatabase()
+
     database_already_instanciated = __check_global_db_already_exists()
 
     if not database_already_instanciated:
@@ -261,6 +273,74 @@ def _get_global_database_instance() -> Database:
         GLOBAL_DATABASE_INSTANCE = Database()
 
     return GLOBAL_DATABASE_INSTANCE
+
+
+class MockCollection:
+    def __init__(self):
+        pass
+
+    def insert_one(data: dict[str, Any]) -> str:
+        if (_id := data.get("_id")):
+            return _id
+        return "testid123"
+
+
+class MockMongoClient:
+    def __init__(self, db_name: str):
+        self.inner = None
+        self._setup_dict(db_name)
+
+    def _setup_dict(self, db_name: str):
+        self.inner = {
+            db_name: {
+                USERS_COLLECTION_NAME: MockCollection(),
+                COMMANDS_COLLECTION_NAME: MockCollection()
+            }
+        }
+
+    def get_client(self) -> dict[str, Any]:
+        return self.inner
+    
+    def close(self):
+        pass
+
+
+class MockDatabase:
+    def __init__(self):
+        self.database_name = _get_database_name_str()
+        self.client = MockMongoClient(self.database_name)
+
+    def get_database_client(self) -> MockMongoClient:
+        """
+        Returns the instance's db client.
+        """
+        return self.client.get_client()
+
+    def get_database_name(self) -> str:
+        """
+        Get the mongo client's current database name
+        """
+        return self.database_name
+
+    def delete_test_database(self) -> None:
+        """
+        Deletes the current testing database.
+
+        Will never delete the production database, even if it
+        is the current database being used.
+        """
+        return
+
+    def close_client_connection(self) -> None:
+        """
+        Closes the client's connection to mongo.
+        """
+        self.client.close()
+
+
+def __make_mock_db() -> MockDatabase():
+    db = MockDatabase()
+    return db
 
 
 def __check_global_db_already_exists() -> bool:  # pylint: disable=invalid-name

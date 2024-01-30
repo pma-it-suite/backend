@@ -18,11 +18,13 @@ from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
 
-from config.db import _get_global_database_instance
 import models.routes.users as user_models
 import models.db.common as common_models
 import models.db as db_models
 import utils.users as user_utils
+
+# TODO @felipearce: very hacky fix if possible
+get_db_instance = None
 
 
 # startup process
@@ -34,6 +36,14 @@ def pytest_configure(config):
     any other statements for setup must be placed afterwards.
     """
     os.environ['_called_from_test'] = 'True'
+    os.environ['_called_from_test_with_mock'] = 'True'
+
+    # TODO @felipearce: very hacky fix if possible
+    # this is because the db instance is created as soon as the module is imported
+    from config.db import _get_global_database_instance
+    global get_db_instance
+    get_db_instance = _get_global_database_instance
+
     logging.getLogger("faker").setLevel(logging.ERROR)
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     del config  # unused variable
@@ -44,10 +54,11 @@ def pytest_unconfigure(config):
     Shutdown process for tests, mostly involving the wiping of database
     documents and resetting the testing environment flag.
     """
-    global_database_instance = _get_global_database_instance()
+    global_database_instance = get_db_instance()
     global_database_instance.delete_test_database()
     global_database_instance.close_client_connection()
     os.environ['_called_from_test'] = 'False'
+    os.environ['_called_from_test_with_mock'] = 'False'
     del config  # unused variable
 
 
@@ -57,7 +68,7 @@ def run_around_tests():
     Clears all documents in the test collections after every single test.
     """
     yield
-    global_database_instance = _get_global_database_instance()
+    global_database_instance = get_db_instance()
     global_database_instance.clear_test_collections()
 
 
