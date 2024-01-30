@@ -95,16 +95,23 @@ def _get_database_name_str() -> str:
     return production_db_name
 
 
+RANDOM_NAME = None
 def _generate_test_database_name() -> str:
     """
     Generates a unique but identifiable database name for testing.
     """
+    global RANDOM_NAME  # pylint: disable=global-statement
+    if RANDOM_NAME:
+        return RANDOM_NAME
     testing_db_name_prefix = "pytest-"
 
     # we need to truncate to 38 bytes for mongo
     random_uuid_str = str(uuid4())[:10]
 
     testing_db_name_str = testing_db_name_prefix + random_uuid_str
+
+    RANDOM_NAME = testing_db_name_str
+
     return testing_db_name_str
 
 
