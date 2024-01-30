@@ -284,12 +284,14 @@ def _get_global_database_instance() -> Database:
 
 class MockCollection:
     def __init__(self):
-        pass
+        self.mapping = {}
 
-    def insert_one(data: dict[str, Any]) -> str:
-        if (_id := data.get("_id")):
-            return _id
-        return "testid123"
+    def insert_one(self, data: dict[str, Any]) -> str:
+        self.mapping[data.get("_id")] = data
+        return data.get("_id")
+    
+    def find_one(self, data: dict[str, Any]) -> dict[str, Any]:
+        return self.mapping.get(data.get("_id"))
 
 
 class MockMongoClient:
@@ -343,6 +345,9 @@ class MockDatabase:
         Closes the client's connection to mongo.
         """
         self.client.close()
+    
+    def clear_test_collections(self) -> None:
+        pass
 
 
 def __make_mock_db() -> MockDatabase():
