@@ -97,7 +97,7 @@ def registered_user(
 
     Returns the original user object.
     """
-    user = registered_user_factory()
+    user, _ = registered_user_factory()
     return user
 
 @pytest.fixture(scope='function')
@@ -200,7 +200,7 @@ def get_identifier_dict_from_user(
     def _get_identifier_from_user(
         user: db_models.user.DbUserRedacted | db_models.user.DbUser
     ) -> Dict[str, Any]:
-        return {"user_id": user.get_id()}
+        return {"user_id": user.email}
 
     return _get_identifier_from_user
 
