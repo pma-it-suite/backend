@@ -6,6 +6,7 @@ this ensures that we have a single source of truth in regards to transactions
 as well as making sure that we never accidentally swap from the production
 database to the testing database.
 """
+from dataclasses import dataclass
 import os
 from uuid import uuid4
 from typing import Dict, Any
@@ -282,13 +283,18 @@ def _get_global_database_instance() -> Database:
     return GLOBAL_DATABASE_INSTANCE
 
 
+@dataclass
+class MockResponse:
+    inserted_id: str
+    
+
 class MockCollection:
     def __init__(self):
         self.mapping = {}
 
     def insert_one(self, data: dict[str, Any]) -> str:
         self.mapping[data.get("_id")] = data
-        return data.get("_id")
+        return MockResponse(inserted_id=data.get("_id"))
     
     def find_one(self, data: dict[str, Any]) -> dict[str, Any]:
         return self.mapping.get(data.get("_id"))
