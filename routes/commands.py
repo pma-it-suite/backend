@@ -1,18 +1,40 @@
-# commands_routes.py
-from flask import Blueprint, request, jsonify
-from flask_cors import cross_origin
-from pymongo import DESCENDING
-import uuid
-from config.db import get_database
+from fastapi import APIRouter
+from config.db import get_users_collection, get_commands_collection
+from bson.objectid import ObjectId
+import models.routes.users as models
+from models.db.common import Id, EmailStr, RaisesException
+from models.db.user import DbUser, RawUser
+from utils.errors import (
+    DefaultDataNotFoundException,
+    InvalidDataException,
+    InvalidPasswordException,
+)
+from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
+from utils.auth import get_auth_token_from_user_id, hash_and_compare
+import utils.errors as exceptions
+import models.routes.commands as cmd_models
 
-# Initialize the Blueprint
-commands_routes = Blueprint('commands_routes', __name__)
+router = APIRouter()
+ROUTE_BASE = "/commands"
+TAG = "commands"
 
 # Initialize MongoDB client
-client = get_database()
-db = client["pma-it-suite"]
-commands_collection = db["commands"]
-members_collection = db["members"]
+users_collection = get_users_collection()
+commands_collection = get_commands_collection()
+
+
+@router.get(
+    ROUTE_BASE + "/get",
+    response_model=cmd_models.batch_commands,
+    summary="Get user by id",
+    tags=[TAG],
+    status_code=200,
+)
+async def get_user(user_id: Id):
+    validate_user_id_or_throw(user_id)
+
+    user = get_db_user_or_throw_if_404(user_id)
+    return models.get_user.GetUserResponse(**user.dict())
 
 
 @commands_routes.route('/recent', methods=['GET'])
@@ -167,7 +189,9 @@ def create_commands_for_multiple_devices():
             }), 404
 
         devices = user.get("devices", [])
-        print(devices)
+        print("devices: ", devices)
+        device_ids = user.get("device_ids", [])
+        print("device_ids: ", device_ids)
         new_commands = []
         for device in devices:
             command_data = {

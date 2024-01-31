@@ -2,8 +2,6 @@ from flask import Blueprint, request, jsonify
 from flask_cors import cross_origin
 from config.db import get_database
 from bson.objectid import ObjectId
-import random
-import string
 
 devices_routes = Blueprint('device_routes', __name__, url_prefix='/devices')
 
@@ -42,7 +40,7 @@ def register_device():
 
         try:
             device_id = user["device_ids"] + device_id
-        except:
+        except BaseException:
             print(f"adding device id ({device_id}) to user ({user_id})...")
             device_ids = [device_id]
 

@@ -1,33 +1,39 @@
-from fastapi import FastAPI, Request
-from routes.users import router as user_router
+from flask import Flask, jsonify
+from routes.user_routes import user_routes
+from routes.subscription_routes import subscription_routes
+from routes.commands_routes import commands_routes
+from routes.device_routes import devices_routes
+from flask_cors import CORS
+from config.main import SERVER_HOST, SERVER_PORT
 import logging
+import argparse
 
 logging.basicConfig(filename='logs.txt',
                     level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-app = FastAPI()
+app = Flask(__name__)
+CORS(app,
+     resources={
+         r"/*": {
+             "origins": "*",
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+             "allow_headers": "*"
+         }
+     })
 
-app.include_router(user_router)
+app.register_blueprint(user_routes, url_prefix='/users')
+app.register_blueprint(subscription_routes, url_prefix='/subscriptions')
+app.register_blueprint(commands_routes, url_prefix='/commands')
+app.register_blueprint(devices_routes, url_prefix='/devices')
 
-
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """
-    Middleware that logs incoming and outgoing requests.
-    """
-    logging.info(f"Incoming request: {request.method} {request.url}")
-    response = await call_next(request)
-    logging.info(f"Outgoing response: {response.status_code}")
-    return response
 
 # Test endpoint at root URL
 @app.route('/', methods=['GET'])
 def test_endpoint():
-    return jsonify({"message": "Hello, test2!"})
+    return jsonify({"message": "Hello, FELIPE!"})
 
 
-"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run the app in debug or production mode.')
@@ -43,8 +49,7 @@ if __name__ == '__main__':
     if args.debug:
         app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
     else:
-        domain_name = "itx.kdns.ooo"
-        file_base = f"/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/{domain_name}/{domain_name}"
+        file_base = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/its.kdns.ooo/its.kdns.ooo"
         cert = file_base + ".crt"
         key = file_base + ".key"
         context = (cert, key)
@@ -52,4 +57,3 @@ if __name__ == '__main__':
                 host=SERVER_HOST,
                 port=SERVER_PORT,
                 ssl_context=context)
-"""
