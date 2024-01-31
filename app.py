@@ -21,10 +21,10 @@ async def log_requests(request: Request, call_next):
     logging.info(f"Outgoing response: {response.status_code}")
     return response
 
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+# Test endpoint at root URL
+@app.route('/', methods=['GET'])
+def test_endpoint():
+    return jsonify({"message": "Hello, test2!"})
 
 
 """
@@ -43,7 +43,8 @@ if __name__ == '__main__':
     if args.debug:
         app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
     else:
-        file_base = "/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/its.kdns.ooo/its.kdns.ooo"
+        domain_name = "itx.kdns.ooo"
+        file_base = f"/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/{domain_name}/{domain_name}"
         cert = file_base + ".crt"
         key = file_base + ".key"
         context = (cert, key)
