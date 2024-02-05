@@ -13,7 +13,7 @@ from typing import Dict, Any
 from pymongo import MongoClient, IndexModel
 from pymongo.collection import Collection
 import pymongo.errors as pymongo_exceptions
-from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME
+from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME, DEVICES_COLLECTION_NAME
 
 
 def get_users_collection() -> Collection:
@@ -34,6 +34,15 @@ def get_commands_collection() -> Collection:
     db = client[get_database_client_name()]
     commands_collection = db[COMMANDS_COLLECTION_NAME]
     return commands_collection
+
+def get_devices_collection() -> Collection:
+    """
+    explicit handle alias for devices collection
+    """
+    client = get_database()
+    db = client[get_database_client_name()]
+    devices_collection = db[DEVICES_COLLECTION_NAME]
+    return devices_collection 
 
 
 def get_database() -> MongoClient:

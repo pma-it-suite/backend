@@ -107,7 +107,7 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     command = Command(**command_data)
 
     result = commands_collection.insert_one(command.dict())
-    if not result:
+    if result.modified_count == 0:
         raise DatabaseNotModified(detail="Failed to create command")
 
     return cmd_models.create_command.CreateCommandResponse(
