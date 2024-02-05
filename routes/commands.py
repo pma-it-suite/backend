@@ -8,8 +8,6 @@ from models.db.user import DbUser, RawUser
 from utils.errors import (
     DatabaseNotModified,
     DefaultDataNotFoundException,
-    InvalidDataException,
-    InvalidPasswordException,
 )
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
 from utils.auth import get_auth_token_from_user_id, hash_and_compare
@@ -96,7 +94,7 @@ async def get_most_recent_command(
     response_model=cmd_models.create_command.CreateCommandResponse,
     summary="Create a command",
     tags=[TAG],
-    status_code=200,
+    status_code=201,
 )
 async def create_command(request: cmd_models.create_command.CreateCommandRequest):
     command_data = {
@@ -111,67 +109,46 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     result = commands_collection.insert_one(command.dict())
     if not result:
         raise DatabaseNotModified(detail="Failed to create command")
-    
-    return cmd_models.create_command.CreateCommandResponse(command_id=result.inserted_id)
+
+    return cmd_models.create_command.CreateCommandResponse(
+        command_id=result.inserted_id)
 
 
-# @commands_routes.route('/batch', methods=['POST'])
-# @cross_origin()
-# def create_commands_for_multiple_devices():
-#     try:
-#         data = request.json
-#         user_id = data.get("user_id")
-#         name = data.get("name")
-#         args = data.get("args")
+@router.post(
+    ROUTE_BASE + "/batch",
+    response_model=cmd_models.create_batch.CreateBatchResponse,
+    summary="Create a batch command for many devices",
+    tags=[TAG],
+    status_code=201,
+)
+async def create_commands_for_multiple_devices(request: cmd_models.create_batch.CreateBatchRequest):
+    user_id = request.user_id
+    name = request.name
+    args = request.args
 
-#         if not user_id:
-#             return jsonify({
-#                 "status": "error",
-#                 "message": "User ID is required"
-#             }), 400
-#         if not name:
-#             return jsonify({
-#                 "status": "error",
-#                 "message": "Command name is required"
-#             }), 400
+    user = get_db_user_or_throw_if_404(user_id)
 
-#         user = members_collection.find_one({"_id": user_id})
+    if not user.device_ids:
+        raise DefaultDataNotFoundException(
+            detail=f"No devices found for user {user_id}")
 
-#         if not user:
-#             return jsonify({
-#                 "status": "error",
-#                 "message": "User not found"
-#             }), 404
+    devices = user.device_ids
+    new_commands = []
+    for device in devices:
+        command_data = {
+            "name": name,
+            "args": args,
+            "device_id": device["device_id"],
+            "issuer_id": request.issuer_id,
+            "status": CommandStatus.PENDING  # default status
+        }
+        new_commands.append(Command(**command_data))
 
-#         devices = user.get("devices", [])
-#         print("devices: ", devices)
-#         device_ids = user.get("device_ids", [])
-#         print("device_ids: ", device_ids)
-#         new_commands = []
-#         for device in devices:
-#             command_data = {
-#                 "_id": str(uuid.uuid4()),
-#                 "name": name,
-#                 "args": args,
-#                 "device_id": device["device_id"],
-#                 "status": "pending"  # default status
-#             }
-#             print(command_data)
-#             commands_collection.insert_one(command_data)
-#             new_commands.append(command_data)
+    response = commands_collection.insert_many(
+        [x.dict() for x in new_commands])
 
-#         return jsonify({
-#             "status": "OK",
-#             "message": "Commands created successfully",
-#             "newCommands": new_commands
-#         }), 201
-
-#     except Exception as e:
-#         print(e)
-#         return jsonify({
-#             "status": "error",
-#             "message": "An error occurred"
-#         }), 500
+    return cmd_models.create_batch.CreateBatchResponse(
+        command_ids=response.inserted_ids)
 
 
 # @commands_routes.route('/status', methods=['GET'])
