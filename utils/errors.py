@@ -97,3 +97,14 @@ class DatabaseError(HTTPException):
         if not detail:
             detail = "Database error"
         super().__init__(status_code=500, detail=detail)
+
+
+class DatabaseNotModified(HTTPException):
+    """
+    Raised when the operation does not change any data in the db
+    """
+
+    def __init__(self, detail: Optional[str] = None):
+        if not detail:
+            detail = "No data updated"
+        super().__init__(status_code=400, detail=detail)

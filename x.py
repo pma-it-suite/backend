@@ -5,12 +5,14 @@ import os
 
 DEBUG_PORT = 5001
 
+
 def run(debug=True):
     """
     Runs the application on a specified debug port.
     If debug is True, the application will automatically reload on code changes.
     """
     os.system(f"uvicorn app:app --reload --port={DEBUG_PORT}")
+
 
 def test(name=None, args=None):
     """
@@ -27,6 +29,7 @@ def test(name=None, args=None):
     print("executing: ", exec_str)
     os.system(exec_str)
 
+
 def lint():
     """
     Runs pylint on all Python files in the current directory and its subdirectories,
@@ -36,6 +39,7 @@ def lint():
         """find .  -path ./venv -prune -false -o -name "*.py" -exec pylint --extension-pkg-whitelist='pydantic' {} +;"""
     )
 
+
 def auto_pep():
     """
     Runs autopep8 on all Python files in the current directory and its subdirectories,
@@ -44,6 +48,7 @@ def auto_pep():
     os.system(
         """find .  -path ./venv -prune -false -o -name "*.py" -exec autopep8 --aggressive --in-place {} +;"""
     )
+
 
 if __name__ == '__main__':
     fire.Fire({'run': run, 'test': test, "lint": lint, "autofmt": auto_pep})

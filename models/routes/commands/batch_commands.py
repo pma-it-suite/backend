@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from models.db.common import Id, BaseModelWithConfig, BaseModelWithId
 from models.db.command import CommandNames
+from typing import Optional
 
 
 class BatchCommandsRequest(BaseModelWithId):
@@ -9,5 +10,5 @@ class BatchCommandsRequest(BaseModelWithId):
     issuer_id: Id
 
 
-class BatchCommandsRequest(BaseModelWithConfig):
+class BatchCommandsResponse(BaseModelWithConfig):
     command_ids: list[Id]

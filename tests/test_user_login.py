@@ -63,6 +63,7 @@ def get_login_request_from_user(
 
     return __get_login_request_from_user
 
+
 @pytest.fixture
 def get_login_request_from_user_form(
     get_identifier_dict_from_user: Callable[[user_models.DbUser], Dict[str,
@@ -84,7 +85,6 @@ def get_login_request_from_user_form(
         return identifier_dict
 
     return __get_login_request_from_user
-
 
 
 def check_user_login_response_valid(response: HTTPResponse) -> bool:
@@ -114,7 +114,7 @@ class TestAttemptRegularDbUserLogin:
     def test_correct_pass(
         self, registered_user_orig: user_models.DbUser,
         get_login_request_from_user_form: Callable[[user_models.DbUser],
-                                              Dict[str, Any]]):
+                                                   Dict[str, Any]]):
         """
         Tries to login an existing user with valid credentials.
         Expects success and 200 response code

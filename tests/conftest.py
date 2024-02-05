@@ -39,7 +39,8 @@ def pytest_configure(config):
     os.environ['_called_from_test_with_mock'] = 'True'
 
     # TODO @felipearce: very hacky fix if possible
-    # this is because the db instance is created as soon as the module is imported
+    # this is because the db instance is created as soon as the module is
+    # imported
     from config.db import _get_global_database_instance
     global get_db_instance
     get_db_instance = _get_global_database_instance
@@ -99,6 +100,7 @@ def registered_user(
     """
     user, _ = registered_user_factory()
     return user
+
 
 @pytest.fixture(scope='function')
 def registered_user_orig(
