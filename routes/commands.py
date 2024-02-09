@@ -9,6 +9,7 @@ from utils.errors import (
     DatabaseNotModified,
     DefaultDataNotFoundException,
 )
+import utils.commands as utils
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
 from utils.auth import get_auth_token_from_user_id, hash_and_compare
 import utils.errors as exceptions
@@ -19,23 +20,36 @@ router = APIRouter()
 ROUTE_BASE = "/commands"
 TAG = "commands"
 
-# Initialize MongoDB client
 users_collection = get_users_collection()
 commands_collection = get_commands_collection()
 
 
 @router.get(
     ROUTE_BASE + "/get",
+    response_model=cmd_models.get_command.GetCommandResponse,
+    summary="Get single command",
+    tags=[TAG],
+    status_code=200,
+)
+async def get_command(command_id: Id):
+    return cmd_models.get_command.GetCommandResponse(command=utils.get_command_from_db_or_404(command_id))
+
+
+@router.post(
+    ROUTE_BASE + "/batch/get",
     response_model=cmd_models.batch_commands.BatchCommandsResponse,
     summary="Get batch commands",
     tags=[TAG],
     status_code=200,
 )
-async def get_batch_cmds(user_id: Id):
-    validate_user_id_or_throw(user_id)
-
-    user = get_db_user_or_throw_if_404(user_id)
-    return models.get_user.GetUserResponse(**user.dict())
+async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest):
+    filter = {"_id": {"$in": request.command_ids}}
+    response = [x for x in commands_collection.find(filter)]
+    if len(response) == 0:
+        raise DefaultDataNotFoundException(
+            detail=f"No commands found with ids {request.command_ids}")
+    commands = [Command(**x) for x in response]
+    return cmd_models.batch_commands.BatchCommandsResponse(commands=commands)
 
 
 @router.patch(

@@ -10,6 +10,7 @@ pytest `conftest.py` file that holds global fixtures for tests
 import os
 import logging
 from typing import Callable, Dict, Any, Optional
+import uuid
 
 import pytest
 import fastapi
@@ -17,6 +18,8 @@ from icecream import ic
 from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
+from config.db import get_commands_collection
+from models.db.command import Command, CommandNames, CommandStatus
 
 import models.routes.users as user_models
 import models.db.common as common_models
@@ -312,3 +315,34 @@ def get_device_from_db():
         return device
 
     return _get_device_from_db
+
+@pytest.fixture(scope='function')
+def unregistered_command_factory():
+    def _factory():
+        command_data = {
+            "status": CommandStatus.PENDING,  # default status
+            "name": CommandNames.UPDATE,
+            "device_id": str(uuid.uuid4()),
+            "issuer_id": str(uuid.uuid4())
+        }
+        command = Command(**command_data)
+        return command
+    return _factory
+
+@pytest.fixture(scope='function')
+def unregistered_command(unregistered_command_factory):
+    return unregistered_command_factory()
+
+@pytest.fixture(scope='function')
+def registered_command_factory(unregistered_command_factory):
+    def _factory():
+        command = unregistered_command_factory()
+        result = get_commands_collection().insert_one(command.dict())
+        if not result.inserted_id:
+            raise Exception("Failed to create command")
+        return command
+    return _factory
+
+@pytest.fixture(scope='function')
+def registered_command(registered_command_factory):
+    return registered_command_factory()

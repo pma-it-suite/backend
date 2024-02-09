@@ -3,3 +3,4 @@ from .command_status import CommandStatusRequest, CommandStatusResponse
 from .get_recent_command import GetRecentCommandRequest, GetRecentCommandResponse
 from .create_command import CreateCommandRequest, CreateCommandResponse
 from .create_batch import CreateBatchRequest, CreateBatchResponse
+from .get_command import GetCommandResponse

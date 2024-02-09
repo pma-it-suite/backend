@@ -29,7 +29,7 @@ class CommandStatus(AutoName):
 
 class Command(BaseModelWithId):
     status: CommandStatus
-    args: Optional[str]
+    args: Optional[str | None] = None
     name: CommandNames
     issuer_id: Id
     device_id: Id
