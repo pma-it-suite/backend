@@ -43,12 +43,7 @@ async def get_command(command_id: Id):
     status_code=200,
 )
 async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest):
-    filter = {"_id": {"$in": request.command_ids}}
-    response = [x for x in commands_collection.find(filter)]
-    if len(response) == 0:
-        raise DefaultDataNotFoundException(
-            detail=f"No commands found with ids {request.command_ids}")
-    commands = [Command(**x) for x in response]
+    commands = utils.get_many_commands_from_db_or_404(request.command_ids)
     return cmd_models.batch_commands.BatchCommandsResponse(commands=commands)
 
 

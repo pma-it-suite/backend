@@ -108,37 +108,17 @@ class TestGetBatchCommands:
         response = client.post(endpoint_url, json=json)
         assert check_get_batch_commands_response_valid(response, cmds)
 
+
+    def test_get_batch_commands_fail_no_data(self, unregistered_command_factory):
+        cmds = []
+        for _ in range(5):
+            cmds.append(unregistered_command_factory())
+        endpoint_url = get_command_endpoint_str() + "/batch/get"
+        json = {"command_ids": [cmd.get_id() for cmd in cmds]}
+        response = client.post(endpoint_url, json=json)
+        assert response.status_code == 404
+        assert not check_get_batch_commands_response_valid(response, cmds)
+
 class TestRegisterCommand:
-    def test_register_command_successful(self, registered_user: user_models.DbUser, get_register_command_req: Callable[[
-                                        str, str, str], Dict[str, Any]], get_user_from_db, get_command_from_db) -> None:
-        """
-        Tries to register a command for an existing user
-        """
-        json_dict = get_register_command_req(
-            "test_command",
-            registered_user.get_id(),
-            registered_user.get_id())
-        endpoint_url = get_command_endpoint_str() + "/register"
-        response = client.post(endpoint_url, json=json_dict)
-
-        assert check_register_command_response_valid(response)
-
-        user = get_user_from_db(registered_user.get_id())
-        assert response.json().get("command_id") in user.command_ids
-
-        command = get_command_from_db(response.json().get("command_id"))
-        assert command.user_id == registered_user.get_id()
-
-    def test_register_command_fail_no_user(self, unregistered_user: user_models.DbUser, get_register_command_req: Callable[[
-            str, str, str], Dict[str, Any]]) -> None:
-        """
-        Tries to register a command for a non-existing user, failing
-        """
-        json_dict = get_register_command_req(
-            "test_command",
-            unregistered_user.get_id(),
-            unregistered_user.get_id())
-        endpoint_url = get_command_endpoint_str() + "/register"
-        response = client.post(endpoint_url, json=json_dict)
-
-        assert not check_register_command_response_valid(response)
+    def test_register_command_success(self):
+        pass

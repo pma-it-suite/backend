@@ -21,9 +21,11 @@ from requests.models import Response as HTTPResponse
 from config.db import get_commands_collection
 from models.db.command import Command, CommandNames, CommandStatus
 
+
 import models.routes.users as user_models
 import models.db.common as common_models
 import models.db as db_models
+from utils.commands import get_command_from_db_or_404
 import utils.users as user_utils
 import utils.devices as device_utils
 
@@ -346,3 +348,9 @@ def registered_command_factory(unregistered_command_factory):
 @pytest.fixture(scope='function')
 def registered_command(registered_command_factory):
     return registered_command_factory()
+
+@pytest.fixture(scope='function')
+def get_command_from_db():
+    def _factory(command_id: common_models.Id):
+        return get_command_from_db_or_404(command_id)
+    return _factory
