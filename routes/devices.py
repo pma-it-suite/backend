@@ -31,7 +31,6 @@ def register_device(
     device = Device(**{"name": request.device_name, "user_id": user_id})
     device_id = device.get_id()
 
-
     user.device_ids.append(device_id)
     response = users_collection.update_one({"_id": user_id},
                                            {"$set": {
@@ -49,8 +48,3 @@ def register_device(
 
     return device_models.register_device.RegisterDeviceResponse(
         device_id=response.inserted_id)
-
-
-def get_user_secret(user_id: str):
-    # TODO @felipearce
-    return user_id + "-test-token"

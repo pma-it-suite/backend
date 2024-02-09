@@ -62,9 +62,8 @@ class TestRegisterDevice:
         device = get_device_from_db(response.json().get("device_id"))
         assert device.user_id == registered_user.get_id()
 
-
     def test_register_device_fail_no_user(self, unregistered_user: user_models.DbUser, get_register_device_req: Callable[[
-                                        str, str, str], Dict[str, Any]]) -> None:
+            str, str, str], Dict[str, Any]]) -> None:
         """
         Tries to register a device for a non-existing user, failing
         """
