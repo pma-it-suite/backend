@@ -107,4 +107,4 @@ class DatabaseNotModified(HTTPException):
     def __init__(self, detail: Optional[str] = None):
         if not detail:
             detail = "No data updated"
-        super().__init__(status_code=400, detail=detail)
+        super().__init__(status_code=500, detail=detail)

@@ -35,7 +35,7 @@ def coverage(name=None, open=False):
     
     if open is True, opens the coverage report in the default web browser.
     """
-    base = "python -m coverage run --source=routes,utils -m pytest"
+    base = "python -m coverage run --source=routes -m pytest"
     if name:
         cmd = f"{base} -k {name}"
     else:
