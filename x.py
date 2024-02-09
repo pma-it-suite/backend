@@ -29,6 +29,26 @@ def test(name=None, args=None):
     print("executing: ", exec_str)
     os.system(exec_str)
 
+def coverage(name=None, open=False):
+    """
+    Runs pytest with coverage and generates a coverage report.
+    
+    if open is True, opens the coverage report in the default web browser.
+    """
+    base = "python -m coverage run --source=routes,utils -m pytest"
+    if name:
+        cmd = f"{base} -k {name}"
+    else:
+        cmd = base
+    
+    print("executing: ", cmd)
+    os.system(cmd)
+
+    if open:
+        os.system("python -m coverage html")
+        os.system("open 'htmlcov/index.html'")
+
+
 
 def lint():
     """
@@ -51,4 +71,4 @@ def auto_pep():
 
 
 if __name__ == '__main__':
-    fire.Fire({'run': run, 'test': test, "lint": lint, "autofmt": auto_pep})
+    fire.Fire({'run': run, 'test': test, "lint": lint, "autofmt": auto_pep, "coverage": coverage})

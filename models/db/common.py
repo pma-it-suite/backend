@@ -25,6 +25,8 @@ class BaseModelWithId(BaseModelWithConfig):
         Workaround on dynamic default setting for UUID.
         From: https://github.com/samuelcolvin/pydantic/issues/866
         """
+        if value:
+            cls.id = value
         return value or _generate_uuid4_str()
 
     def dict(self, *args, **kwargs) -> dict[str, Any]:

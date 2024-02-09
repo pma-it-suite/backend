@@ -22,6 +22,7 @@ import models.routes.users as user_models
 import models.db.common as common_models
 import models.db as db_models
 import utils.users as user_utils
+import utils.devices as device_utils
 
 # TODO @felipearce: very hacky fix if possible
 get_db_instance = None
@@ -36,7 +37,7 @@ def pytest_configure(config):
     any other statements for setup must be placed afterwards.
     """
     os.environ['_called_from_test'] = 'True'
-    os.environ['_called_from_test_with_mock'] = 'True'
+    # os.environ['_called_from_test_with_mock'] = 'True'
 
     # TODO @felipearce: very hacky fix if possible
     # this is because the db instance is created as soon as the module is
@@ -293,3 +294,21 @@ def generate_random_register_user_request(
         "user_type": user_type,
     }
     return user_models.register_user.RegisterUserRequest(**user_data)
+
+
+@pytest.fixture(autouse=True)
+def get_user_from_db():
+    def _get_user_from_db(identifier: str | common_models.Id):
+        user = user_utils.get_db_user_or_throw_if_404(identifier)
+        return user
+
+    return _get_user_from_db
+
+
+@pytest.fixture(autouse=True)
+def get_device_from_db():
+    def _get_device_from_db(identifier: common_models.Id):
+        device = device_utils.get_device_from_db_or_404(identifier)
+        return device
+
+    return _get_device_from_db

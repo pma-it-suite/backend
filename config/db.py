@@ -9,7 +9,7 @@ database to the testing database.
 from dataclasses import dataclass
 import os
 from uuid import uuid4
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pymongo import MongoClient, IndexModel
 from pymongo.collection import Collection
 import pymongo.errors as pymongo_exceptions
@@ -35,6 +35,7 @@ def get_commands_collection() -> Collection:
     commands_collection = db[COMMANDS_COLLECTION_NAME]
     return commands_collection
 
+
 def get_devices_collection() -> Collection:
     """
     explicit handle alias for devices collection
@@ -42,7 +43,7 @@ def get_devices_collection() -> Collection:
     client = get_database()
     db = client[get_database_client_name()]
     devices_collection = db[DEVICES_COLLECTION_NAME]
-    return devices_collection 
+    return devices_collection
 
 
 def get_database() -> MongoClient:
@@ -300,6 +301,7 @@ def _get_global_database_instance() -> Database:
 @dataclass
 class MockResponse:
     inserted_id: str
+    modified_count: Optional[int]
 
 
 class MockCollection:
@@ -307,7 +309,7 @@ class MockCollection:
         self.collection_name = collection_name
         self.mapping = {}
 
-    def insert_one(self, data: dict[str, Any]) -> str:
+    def insert_one(self, data: dict[str, Any]) -> MockResponse:
         # do not allow dupes
         if self.collection_name == USERS_COLLECTION_NAME:
             if self.mapping.get(data.get("email")):
@@ -332,6 +334,15 @@ class MockCollection:
             return None
         return resp
 
+    def update_one(self, data: dict[str, Any],
+                   update: dict[str, Any]) -> MockResponse:
+        if self.collection_name == USERS_COLLECTION_NAME:
+            self.mapping[data.get("email")] = update
+        else:
+            self.mapping[data.get("_id")] = update
+
+        return MockResponse(inserted_id="", modified_count=1)
+
     def __repr__(self) -> str:
         return str(self.mapping)
 
@@ -345,6 +356,7 @@ class MockMongoClient:
         self.inner = {
             db_name: {
                 USERS_COLLECTION_NAME: MockCollection(USERS_COLLECTION_NAME),
+                DEVICES_COLLECTION_NAME: MockCollection(DEVICES_COLLECTION_NAME),
                 COMMANDS_COLLECTION_NAME: MockCollection(
                     COMMANDS_COLLECTION_NAME)
             }
