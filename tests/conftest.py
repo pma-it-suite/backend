@@ -319,6 +319,7 @@ def get_device_from_db():
 
     return _get_device_from_db
 
+
 @pytest.fixture(scope='function')
 def unregistered_command_factory():
     def _factory():
@@ -332,9 +333,11 @@ def unregistered_command_factory():
         return command
     return _factory
 
+
 @pytest.fixture(scope='function')
 def unregistered_command(unregistered_command_factory):
     return unregistered_command_factory()
+
 
 @pytest.fixture(scope='function')
 def registered_command_factory(unregistered_command_factory):
@@ -346,15 +349,18 @@ def registered_command_factory(unregistered_command_factory):
         return command
     return _factory
 
+
 @pytest.fixture(scope='function')
 def registered_command(registered_command_factory):
     return registered_command_factory()
+
 
 @pytest.fixture(scope='function')
 def get_command_from_db():
     def _factory(command_id: common_models.Id):
         return get_command_from_db_or_404(command_id)
     return _factory
+
 
 @pytest.fixture(scope='function')
 def unregistered_device_factory():
@@ -368,9 +374,11 @@ def unregistered_device_factory():
         return device
     return _factory
 
+
 @pytest.fixture(scope='function')
 def unregistered_device(unregistered_device_factory):
     return unregistered_device_factory()
+
 
 @pytest.fixture(scope='function')
 def registered_device_factory(unregistered_device_factory):
@@ -381,6 +389,7 @@ def registered_device_factory(unregistered_device_factory):
             raise Exception("Failed to create device")
         return device
     return _factory
+
 
 @pytest.fixture(scope='function')
 def registered_device(registered_device_factory):

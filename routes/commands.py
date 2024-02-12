@@ -37,7 +37,8 @@ devices_collection = get_devices_collection()
     status_code=200,
 )
 async def get_command(command_id: Id):
-    return cmd_models.get_command.GetCommandResponse(command=utils.get_command_from_db_or_404(command_id))
+    return cmd_models.get_command.GetCommandResponse(
+        command=utils.get_command_from_db_or_404(command_id))
 
 
 @router.post(
@@ -125,8 +126,10 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     check_insert_was_successful(result, "Failed to create command")
     command_id = result.inserted_id
 
-    result = devices_collection.update_one({'_id': request.device_id}, {"$push": {"command_ids": command_id}})
-    check_update_was_successful(result, "Failed to update device with new command id")
+    result = devices_collection.update_one({'_id': request.device_id}, {
+                                           "$push": {"command_ids": command_id}})
+    check_update_was_successful(
+        result, "Failed to update device with new command id")
 
     return cmd_models.create_command.CreateCommandResponse(
         command_id=command_id)

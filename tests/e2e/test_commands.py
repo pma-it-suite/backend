@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 from requests.models import Response as HTTPResponse
 from icecream import ic
-from models.db.command  import Command, CommandNames
+from models.db.command import Command, CommandNames
 from models.db.common import Id
 import models.db.user as user_models
 from models.db.auth import Token
@@ -22,10 +22,13 @@ def get_get_command_req():
 
     return __get_get_command_req
 
+
 @pytest.fixture
 def get_register_command_req() -> Dict[str, Any]:
-    def __get_register_command_req(device_id: Id, name: CommandNames, issuer_id: Id) -> Dict[str, Any]:
-        req = CreateCommandRequest(**{"device_id": device_id, "name": name, "issuer_id": issuer_id})
+    def __get_register_command_req(
+            device_id: Id, name: CommandNames, issuer_id: Id) -> Dict[str, Any]:
+        req = CreateCommandRequest(
+            **{"device_id": device_id, "name": name, "issuer_id": issuer_id})
         logging.debug(f"req: {req}")
         return req.model_dump()
 
@@ -46,7 +49,9 @@ def check_create_command_response_valid(response: HTTPResponse) -> bool:
         logging.debug(debug_msg)
         return False
 
-def check_command_dicts_same(cmd: Command, dict_to_check: Dict[str, Any]) -> bool:
+
+def check_command_dicts_same(
+        cmd: Command, dict_to_check: Dict[str, Any]) -> bool:
     cmd_dict = cmd.dict()
     for key in cmd_dict.keys():
         if key == "id":
@@ -55,7 +60,9 @@ def check_command_dicts_same(cmd: Command, dict_to_check: Dict[str, Any]) -> boo
             return False
     return True
 
-def check_get_command_response_valid(response: HTTPResponse, command: Command) -> bool:
+
+def check_get_command_response_valid(
+        response: HTTPResponse, command: Command) -> bool:
     try:
         assert response.status_code == 200
         command_resp = response.json().get("command")
@@ -65,8 +72,10 @@ def check_get_command_response_valid(response: HTTPResponse, command: Command) -
         debug_msg = f"failed at: {error}. resp json: {response.json()}"
         logging.debug(debug_msg)
         return False
-    
-def check_get_batch_commands_response_valid(response: HTTPResponse, commands: list[Command]) -> bool:
+
+
+def check_get_batch_commands_response_valid(
+        response: HTTPResponse, commands: list[Command]) -> bool:
     try:
         assert response.status_code == 200
         command_resp = response.json().get("commands")
@@ -85,20 +94,25 @@ def check_get_batch_commands_response_valid(response: HTTPResponse, commands: li
 def get_command_endpoint_str() -> str:
     return "/commands"
 
+
 class TestGetCommand:
-    def test_get_command_success(self, registered_command, get_get_command_req):
+    def test_get_command_success(
+            self, registered_command, get_get_command_req):
         params = get_get_command_req(registered_command.get_id())
         endpoint_url = get_command_endpoint_str() + "/get"
         response = client.get(endpoint_url, params=params)
         assert check_get_command_response_valid(response, registered_command)
 
-    def test_get_command_no_command_fail(self, unregistered_command, get_get_command_req):
+    def test_get_command_no_command_fail(
+            self, unregistered_command, get_get_command_req):
         params = get_get_command_req(unregistered_command.get_id())
         endpoint_url = get_command_endpoint_str() + "/get"
         response = client.get(endpoint_url, params=params)
-        assert not check_get_command_response_valid(response, unregistered_command)
-        assert "No command found" in response.json().get("detail") 
-        assert unregistered_command.get_id() in response.json().get("detail") 
+        assert not check_get_command_response_valid(
+            response, unregistered_command)
+        assert "No command found" in response.json().get("detail")
+        assert unregistered_command.get_id() in response.json().get("detail")
+
 
 class TestGetBatchCommands:
     def test_get_batch_commands_success(self, registered_command_factory):
@@ -110,8 +124,8 @@ class TestGetBatchCommands:
         response = client.post(endpoint_url, json=json)
         assert check_get_batch_commands_response_valid(response, cmds)
 
-
-    def test_get_batch_commands_fail_no_data(self, unregistered_command_factory):
+    def test_get_batch_commands_fail_no_data(
+            self, unregistered_command_factory):
         cmds = []
         for _ in range(5):
             cmds.append(unregistered_command_factory())
@@ -121,9 +135,14 @@ class TestGetBatchCommands:
         assert response.status_code == 404
         assert not check_get_batch_commands_response_valid(response, cmds)
 
+
 class TestCreateCommand:
-    def test_create_command_success(self, registered_device, registered_user, get_register_command_req, get_device_from_db):
-        json_dict = get_register_command_req(registered_device.get_id(), CommandNames.UPDATE, registered_user.get_id())
+    def test_create_command_success(
+            self, registered_device, registered_user, get_register_command_req, get_device_from_db):
+        json_dict = get_register_command_req(
+            registered_device.get_id(),
+            CommandNames.UPDATE,
+            registered_user.get_id())
         endpoint_url = get_command_endpoint_str() + "/create"
         response = client.post(endpoint_url, json=json_dict)
 
