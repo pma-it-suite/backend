@@ -10,6 +10,7 @@ import models.db.user as user_models
 from models.db.auth import Token
 
 from app import app
+from models.routes.commands.create_batch import CreateBatchRequest
 from models.routes.commands.create_command import CreateCommandRequest
 
 client = TestClient(app)
@@ -43,6 +44,17 @@ def check_create_command_response_valid(response: HTTPResponse) -> bool:
     try:
         assert response.status_code == 201
         assert "command_id" in response.json()
+        return True
+    except AssertionError as assert_error:
+        debug_msg = f"failed at: {assert_error}. resp json: {response.json()}"
+        logging.debug(debug_msg)
+        return False
+
+
+def check_create_batch_command_response_valid(response: HTTPResponse) -> bool:
+    try:
+        assert response.status_code == 201
+        assert "command_ids" in response.json()
         return True
     except AssertionError as assert_error:
         debug_msg = f"failed at: {assert_error}. resp json: {response.json()}"
@@ -150,3 +162,50 @@ class TestCreateCommand:
 
         device = get_device_from_db(registered_device.get_id())
         assert response.json().get("command_id") in device.command_ids
+
+    def test_create_command_fail_no_device(
+            self, unregistered_device, registered_user, get_register_command_req):
+        json_dict = get_register_command_req(
+            unregistered_device.get_id(),
+            CommandNames.UPDATE,
+            registered_user.get_id())
+        endpoint_url = get_command_endpoint_str() + "/create"
+        response = client.post(endpoint_url, json=json_dict)
+        assert response.status_code == 404
+        assert "No device found" in response.json().get("detail")
+        assert unregistered_device.get_id() in response.json().get("detail")
+
+
+class TestCreateBatchCommand:
+    def test_create_batch_command_success(
+            self, registered_device_factory, registered_user, get_device_from_db):
+        devices = [registered_device_factory() for _ in range(5)]
+        json_dict = CreateBatchRequest(**{
+            "device_ids": [device.get_id() for device in devices],
+            "name": CommandNames.UPDATE,
+            "issuer_id": registered_user.get_id()
+        }).model_dump()
+        endpoint_url = get_command_endpoint_str() + "/batch/create"
+        response = client.post(endpoint_url, json=json_dict)
+
+        assert check_create_batch_command_response_valid(response)
+
+        ids = set(response.json().get("command_ids"))
+        expected_ids = len(ids)
+        for device in devices:
+            db_device = get_device_from_db(device.get_id())
+            [ids.add(x) for x in db_device.command_ids]
+        assert len(ids) == expected_ids
+
+    def test_create_batch_command_fail_no_device(
+            self, unregistered_device, registered_user):
+        json_dict = CreateBatchRequest(**{
+            "device_ids": [unregistered_device.get_id()],
+            "name": CommandNames.UPDATE,
+            "issuer_id": registered_user.get_id()
+        }).model_dump()
+        endpoint_url = get_command_endpoint_str() + "/batch/create"
+        response = client.post(endpoint_url, json=json_dict)
+        assert response.status_code == 404
+        assert "No device found" in response.json().get("detail")
+        assert unregistered_device.get_id() in response.json().get("detail")

@@ -136,37 +136,28 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
 
 
 @router.post(
-    ROUTE_BASE + "/batch",
+    ROUTE_BASE + "/batch/create",
     response_model=cmd_models.create_batch.CreateBatchResponse,
     summary="Create a batch command for many devices",
     tags=[TAG],
     status_code=201,
 )
 async def create_commands_for_multiple_devices(request: cmd_models.create_batch.CreateBatchRequest):
-    user_id = request.user_id
-    name = request.name
-    args = request.args
+    [get_device_from_db_or_404(device_id) for device_id in request.device_ids]
 
-    user = get_db_user_or_throw_if_404(user_id)
-
-    if not user.device_ids:
-        raise DefaultDataNotFoundException(
-            detail=f"No devices found for user {user_id}")
-
-    devices = user.device_ids
-    new_commands = []
-    for device in devices:
-        command_data = {
-            "name": name,
-            "args": args,
-            "device_id": device["device_id"],
-            "issuer_id": request.issuer_id,
-            "status": CommandStatus.PENDING  # default status
-        }
-        new_commands.append(Command(**command_data))
+    devices = request.device_ids
+    commands = [Command(**{"name": request.name,
+                           "args": request.args,
+                           "device_id": device_id,
+                           "issuer_id": request.issuer_id,
+                           "status": CommandStatus.PENDING  # default status
+                           }) for device_id in devices]
 
     response = commands_collection.insert_many(
-        [x.dict() for x in new_commands])
+        [x.dict() for x in commands])
+
+    if len(response.inserted_ids) != len(devices):
+        raise DatabaseNotModified(detail="Failed to create batch commands")
 
     return cmd_models.create_batch.CreateBatchResponse(
         command_ids=response.inserted_ids)

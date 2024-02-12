@@ -4,9 +4,9 @@ from models.db.command import CommandNames
 
 
 class CreateBatchRequest(BaseModelWithConfig):
-    user_id: Id
+    device_ids: list[Id]
     name: CommandNames
-    args: Optional[str]
+    args: Optional[str] = None
     issuer_id: Id
 
 
