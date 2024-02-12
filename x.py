@@ -21,9 +21,9 @@ def test(name=None, args=None):
     Additional arguments for pytest can be passed with the args parameter.
     """
     if name:
-        cmd = f"python -m pytest -k {name}"
+        cmd = f"python -m pytest -x -k {name}"
     else:
-        cmd = f"python -m pytest"
+        cmd = f"python -m pytest -x"
 
     exec_str = f"{cmd} {args if args else ''}"
     print("executing: ", exec_str)

@@ -44,6 +44,7 @@ PyJWT==2.8.0
 pylint==3.0.1
 pymongo==4.5.0
 pytest==7.4.2
+pytest-asyncio==0.23.5
 python-dateutil==2.8.2
 python-dotenv==1.0.0
 PyYAML==6.0.1

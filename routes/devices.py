@@ -21,7 +21,7 @@ devices_collection = get_devices_collection()
     tags=[TAG],
     status_code=201,
 )
-def register_device(
+async def register_device(
         request: device_models.register_device.RegisterDeviceRequest):
     user_id = request.user_id
     user = get_db_user_or_throw_if_404(user_id)

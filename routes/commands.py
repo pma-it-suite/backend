@@ -156,7 +156,7 @@ async def create_commands_for_multiple_devices(request: cmd_models.create_batch.
     response = commands_collection.insert_many(
         [x.dict() for x in commands])
 
-    if len(response.inserted_ids) != len(devices):
+    if not response.inserted_ids or len(response.inserted_ids) != len(devices):
         raise DatabaseNotModified(detail="Failed to create batch commands")
 
     return cmd_models.create_batch.CreateBatchResponse(
