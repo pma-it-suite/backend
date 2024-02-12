@@ -1,3 +1,4 @@
+import logging
 from config.db import get_devices_collection
 from models.db.common import Id, RaisesException
 from models.db.device import Device

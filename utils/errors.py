@@ -108,3 +108,19 @@ class DatabaseNotModified(HTTPException):
         if not detail:
             detail = "No data updated"
         super().__init__(status_code=500, detail=detail)
+
+
+def check_insert_was_successful(result, detail: str) -> None:
+    """
+    Checks if the result of an insert operation was successful,
+    raising an error if not.
+    """
+    if result.inserted_id == 0 or result.inserted_id is None:
+        raise DatabaseNotModified(detail=detail)
+
+def check_update_was_successful(result, detail: str) -> None:
+    """
+    Checks if the result of an update operation was successful,
+    """
+    if result.modified_count == 0:
+        raise DatabaseNotModified(detail=detail)

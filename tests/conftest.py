@@ -18,8 +18,9 @@ from icecream import ic
 from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
-from config.db import get_commands_collection
+from config.db import get_commands_collection, get_devices_collection
 from models.db.command import Command, CommandNames, CommandStatus
+from models.db.device import Device
 
 
 import models.routes.users as user_models
@@ -354,3 +355,33 @@ def get_command_from_db():
     def _factory(command_id: common_models.Id):
         return get_command_from_db_or_404(command_id)
     return _factory
+
+@pytest.fixture(scope='function')
+def unregistered_device_factory():
+    def _factory():
+        device_data = {
+            "name": "test device",
+            "user_id": str(uuid.uuid4()),
+            "command_ids": [],
+        }
+        device = Device(**device_data)
+        return device
+    return _factory
+
+@pytest.fixture(scope='function')
+def unregistered_device(unregistered_device_factory):
+    return unregistered_device_factory()
+
+@pytest.fixture(scope='function')
+def registered_device_factory(unregistered_device_factory):
+    def _factory():
+        device = unregistered_device_factory()
+        result = get_devices_collection().insert_one(device.dict())
+        if not result.inserted_id:
+            raise Exception("Failed to create device")
+        return device
+    return _factory
+
+@pytest.fixture(scope='function')
+def registered_device(registered_device_factory):
+    return registered_device_factory()

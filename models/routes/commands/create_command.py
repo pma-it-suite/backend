@@ -6,7 +6,7 @@ from models.db.command import Command, CommandNames
 class CreateCommandRequest(BaseModelWithConfig):
     device_id: Id
     name: CommandNames
-    args: Optional[str]
+    args: Optional[str|None] = None
     issuer_id: Id
 
 

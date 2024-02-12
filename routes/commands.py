@@ -1,13 +1,17 @@
+import logging
 from fastapi import APIRouter
-from config.db import get_users_collection, get_commands_collection
+from config.db import get_devices_collection, get_users_collection, get_commands_collection
 from bson.objectid import ObjectId
 from models.db.command import CommandStatus, Command
 import models.routes.users as models
 from models.db.common import Id, EmailStr, RaisesException
 from models.db.user import DbUser, RawUser
+from utils.devices import get_device_from_db_or_404
 from utils.errors import (
     DatabaseNotModified,
     DefaultDataNotFoundException,
+    check_insert_was_successful,
+    check_update_was_successful,
 )
 import utils.commands as utils
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
@@ -22,6 +26,7 @@ TAG = "commands"
 
 users_collection = get_users_collection()
 commands_collection = get_commands_collection()
+devices_collection = get_devices_collection()
 
 
 @router.get(
@@ -106,6 +111,7 @@ async def get_most_recent_command(
     status_code=201,
 )
 async def create_command(request: cmd_models.create_command.CreateCommandRequest):
+    get_device_from_db_or_404(request.device_id)
     command_data = {
         "status": CommandStatus.PENDING,  # default status
         "args": request.args,
@@ -116,11 +122,14 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     command = Command(**command_data)
 
     result = commands_collection.insert_one(command.dict())
-    if result.modified_count == 0:
-        raise DatabaseNotModified(detail="Failed to create command")
+    check_insert_was_successful(result, "Failed to create command")
+    command_id = result.inserted_id
+
+    result = devices_collection.update_one({'_id': request.device_id}, {"$push": {"command_ids": command_id}})
+    check_update_was_successful(result, "Failed to update device with new command id")
 
     return cmd_models.create_command.CreateCommandResponse(
-        command_id=result.inserted_id)
+        command_id=command_id)
 
 
 @router.post(
