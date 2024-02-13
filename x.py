@@ -68,6 +68,8 @@ def auto_pep():
     os.system(
         """find .  -path ./venv -prune -false -o -name "*.py" -exec autopep8 --aggressive --in-place {} +;"""
     )
+    # return success to system since cli
+    return 0
 
 
 if __name__ == '__main__':

@@ -341,8 +341,10 @@ def unregistered_command(unregistered_command_factory):
 
 @pytest.fixture(scope='function')
 def registered_command_factory(unregistered_command_factory):
-    def _factory():
+    def _factory(device_id: Optional[common_models.Id] = None):
         command = unregistered_command_factory()
+        if device_id:
+            command.device_id = device_id
         result = get_commands_collection().insert_one(command.dict())
         if not result.inserted_id:
             raise Exception("Failed to create command")

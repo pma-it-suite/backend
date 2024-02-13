@@ -13,6 +13,7 @@ from app import app
 from models.routes.commands.command_status import CommandStatusRequest
 from models.routes.commands.create_batch import CreateBatchRequest
 from models.routes.commands.create_command import CreateCommandRequest
+from models.routes.commands.get_recent_command import GetRecentCommandRequest
 
 client = TestClient(app)
 
@@ -144,6 +145,44 @@ class TestUpdateCommandStatus:
         assert response.status_code == 404
         assert "No command found" in response.json().get("detail")
         assert unregistered_command.get_id() in response.json().get("detail")
+
+
+@pytest.fixture
+def get_recent_command_request_factory():
+    def __get_recent_command_request(device_id: Id) -> Dict[str, Any]:
+        return {"device_id": device_id}
+    return __get_recent_command_request
+
+
+class TestGetRecentCommand:
+    def test_get_recent_command_success(
+            self, registered_command_factory, registered_device, get_recent_command_request_factory):
+        cmds = [
+            registered_command_factory(
+                device_id=registered_device.get_id()) for _ in range(3)]
+
+        endpoint_url = get_command_endpoint_str() + "/recent"
+        json = get_recent_command_request_factory(registered_device.get_id())
+        response = client.get(endpoint_url, params=json)
+        assert check_get_command_response_valid(response, cmds[0])
+
+    def test_get_recent_command_no_device_fail(
+            self, unregistered_device, get_recent_command_request_factory):
+        endpoint_url = get_command_endpoint_str() + "/recent"
+        json = get_recent_command_request_factory(unregistered_device.get_id())
+        response = client.get(endpoint_url, params=json)
+        assert response.status_code == 404
+        assert "No device found" in response.json().get("detail")
+        assert unregistered_device.get_id() in response.json().get("detail")
+
+    def test_get_recent_command_no_commands_fail(
+            self, registered_device, get_recent_command_request_factory):
+        endpoint_url = get_command_endpoint_str() + "/recent"
+        json = get_recent_command_request_factory(registered_device.get_id())
+        response = client.get(endpoint_url, params=json)
+        assert response.status_code == 404
+        assert "No commands found" in response.json().get("detail")
+        assert registered_device.get_id() in response.json().get("detail")
 
 
 @pytest.fixture
