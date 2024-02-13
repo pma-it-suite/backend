@@ -1,5 +1,5 @@
 from .batch_commands import BatchCommandsRequest, BatchCommandsResponse
-from .command_status import CommandStatusRequest, CommandStatusResponse
+from .command_status import CommandStatusRequest
 from .get_recent_command import GetRecentCommandRequest, GetRecentCommandResponse
 from .create_command import CreateCommandRequest, CreateCommandResponse
 from .create_batch import CreateBatchRequest, CreateBatchResponse

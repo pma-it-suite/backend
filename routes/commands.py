@@ -54,11 +54,11 @@ async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest
 
 
 @router.patch(
-    ROUTE_BASE + "/status",
-    response_model=cmd_models.command_status.CommandStatusResponse,
+    ROUTE_BASE + "/update/status",
+    response_model=None,
     summary="Change command status",
     tags=[TAG],
-    status_code=200,
+    status_code=204,
 )
 async def update_command_status(
         request: cmd_models.command_status.CommandStatusRequest):
@@ -76,7 +76,7 @@ async def update_command_status(
     if updated.modified_count == 0:
         raise DatabaseNotModified(detail=f"Failed to update command status")
 
-    return cmd_models.command_status.CommandStatusResponse()
+    return
 
 
 @router.get(

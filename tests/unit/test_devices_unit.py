@@ -45,6 +45,7 @@ class TestRegisterDeviceUnit:
         assert exception.status_code == 500
         assert exception.detail == "Failed update user with device"
 
+    @pytest.mark.asyncio
     async def test_register_device_device_insert_fails(
             self, get_register_request_factory, registered_user):
         # Arrange
