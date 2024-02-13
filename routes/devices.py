@@ -1,66 +1,50 @@
-from flask import Blueprint, request, jsonify
-from flask_cors import cross_origin
-from config.db import get_database
-from bson.objectid import ObjectId
+from fastapi import APIRouter
+from config.db import get_database, get_users_collection, get_devices_collection
+from models.db.device import Device
+import models.routes.devices as device_models
+from utils.errors import DatabaseNotModified
+from utils.users import get_db_user_or_throw_if_404
+import uuid
 
-devices_routes = Blueprint('device_routes', __name__, url_prefix='/devices')
+router = APIRouter()
+ROUTE_BASE = "/devices"
+TAG = "devices"
 
-# Initialize MongoDB client
-client = get_database()
-db = client["pma-it-suite"]
-users_collection = db["members"]
-devices_collection = db["devices"]
-
-
-@devices_routes.route('/register', methods=['POST'])
-@cross_origin()
-def register_device():
-    data = request.json
-
-    required_fields = ["user_id", "user_secret"]
-    for field in required_fields:
-        if field not in data:
-            return jsonify({
-                "status": "error",
-                "message": f"{field} is required"
-            }), 400
-
-    try:
-        user_id = data["user_id"]
-        filter = {"_id": user_id}
-        print(f"looking for user {user_id} to register device...")
-        user = users_collection.find_one(filter)
-        if not user:
-            return jsonify({"message": f"User with {user_id} not found"}), 404
-
-        if data["user_secret"] != get_user_secret(user_id):
-            return jsonify({"message": f"User secret invalid"}), 401
-
-        device_id = str(ObjectId())
-
-        try:
-            device_id = user["device_ids"] + device_id
-        except BaseException:
-            print(f"adding device id ({device_id}) to user ({user_id})...")
-            device_ids = [device_id]
-
-        users_collection.update_one(filter,
-                                    {"$set": {
-                                        "device_ids": device_ids
-                                    }})
-
-        device = {"_id": device_id, "user_id": user_id}
-        devices_collection.insert_one(device)
-
-        return jsonify({
-            "message":
-            f"User {user['username']} updated with device {device_id} successfully",
-            "device_id": device_id
-        }), 200
-    except Exception as e:
-        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+users_collection = get_users_collection()
+devices_collection = get_devices_collection()
 
 
-def get_user_secret(user_id: str):
-    # TODO @felipearce
-    return user_id + "-test-token"
+@router.post(
+    ROUTE_BASE + "/register",
+    response_model=device_models.register_device.RegisterDeviceResponse,
+    summary="Register a device for a given user",
+    tags=[TAG],
+    status_code=201,
+)
+async def register_device(
+        request: device_models.register_device.RegisterDeviceRequest):
+    user_id = request.user_id
+    user = get_db_user_or_throw_if_404(user_id)
+
+    # TODO @felipearce: add auth to this with header
+
+    device = Device(**{"name": request.device_name, "user_id": user_id})
+    device_id = device.get_id()
+
+    user.device_ids.append(device_id)
+    response = users_collection.update_one({"_id": user_id},
+                                           {"$set": {
+                                               "device_ids": user.device_ids
+                                           }})
+
+    if response.modified_count == 0:
+        raise DatabaseNotModified(detail="Failed update user with device")
+
+    response = devices_collection.insert_one(device.dict())
+    if not response.inserted_id:
+        raise DatabaseNotModified(
+            detail="Failed to create device with name " +
+            request.device_name)
+
+    return device_models.register_device.RegisterDeviceResponse(
+        device_id=response.inserted_id)

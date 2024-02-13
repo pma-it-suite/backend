@@ -1,0 +1,9 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: autofmt
+        name: autofmt
+        entry: ./x.py autofmt --
+        language: system
+        files: '\.py$'
+        stages: [commit]

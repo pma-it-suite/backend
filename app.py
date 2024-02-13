@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request
 from routes.users import router as user_router
+from routes.commands import router as commands_router
+from routes.devices import router as devices_router
 import logging
 
 logging.basicConfig(filename='logs.txt',
@@ -9,6 +11,8 @@ logging.basicConfig(filename='logs.txt',
 app = FastAPI()
 
 app.include_router(user_router)
+app.include_router(commands_router)
+app.include_router(devices_router)
 
 
 @app.middleware("http")
@@ -20,12 +24,6 @@ async def log_requests(request: Request, call_next):
     response = await call_next(request)
     logging.info(f"Outgoing response: {response.status_code}")
     return response
-
-# Test endpoint at root URL
-@app.route('/', methods=['GET'])
-def test_endpoint():
-    return jsonify({"message": "Hello, test2!"})
-
 
 """
 if __name__ == '__main__':

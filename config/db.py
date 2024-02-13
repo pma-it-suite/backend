@@ -9,13 +9,14 @@ database to the testing database.
 from dataclasses import dataclass
 import os
 from uuid import uuid4
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from pymongo import MongoClient, IndexModel
+from pymongo.collection import Collection
 import pymongo.errors as pymongo_exceptions
-from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME
+from config.main import DB_URI, USERS_COLLECTION_NAME, COMMANDS_COLLECTION_NAME, DEVICES_COLLECTION_NAME
 
 
-def get_users_collection():
+def get_users_collection() -> Collection:
     """
     explicit handle alias for users collection
     """
@@ -25,7 +26,7 @@ def get_users_collection():
     return users_collection
 
 
-def get_commands_collection():
+def get_commands_collection() -> Collection:
     """
     explicit handle alias for commands collection
     """
@@ -33,6 +34,16 @@ def get_commands_collection():
     db = client[get_database_client_name()]
     commands_collection = db[COMMANDS_COLLECTION_NAME]
     return commands_collection
+
+
+def get_devices_collection() -> Collection:
+    """
+    explicit handle alias for devices collection
+    """
+    client = get_database()
+    db = client[get_database_client_name()]
+    devices_collection = db[DEVICES_COLLECTION_NAME]
+    return devices_collection
 
 
 def get_database() -> MongoClient:
@@ -98,6 +109,8 @@ def _get_database_name_str() -> str:
 
 
 RANDOM_NAME = None
+
+
 def _generate_test_database_name() -> str:
     """
     Generates a unique but identifiable database name for testing.
@@ -121,6 +134,7 @@ class Database:
     """
     Utility class that holds the main database client instance.
     """
+
     def __init__(self):
         """
         Creates a Database instance with a MongoClient set to the global DB_URI.
@@ -287,18 +301,20 @@ def _get_global_database_instance() -> Database:
 @dataclass
 class MockResponse:
     inserted_id: str
-    
+    modified_count: Optional[int]
+
 
 class MockCollection:
     def __init__(self, collection_name: str):
         self.collection_name = collection_name
         self.mapping = {}
 
-    def insert_one(self, data: dict[str, Any]) -> str:
+    def insert_one(self, data: dict[str, Any]) -> MockResponse:
         # do not allow dupes
         if self.collection_name == USERS_COLLECTION_NAME:
             if self.mapping.get(data.get("email")):
-                raise pymongo_exceptions.DuplicateKeyError("Duplicate key error")
+                raise pymongo_exceptions.DuplicateKeyError(
+                    "Duplicate key error")
         if self.mapping.get(data.get("_id")):
             raise pymongo_exceptions.DuplicateKeyError("Duplicate key error")
 
@@ -307,7 +323,7 @@ class MockCollection:
         else:
             self.mapping[data.get("_id")] = data
         return MockResponse(inserted_id=data.get("_id"))
-    
+
     def find_one(self, data: dict[str, Any]) -> dict[str, Any]:
         if self.collection_name == USERS_COLLECTION_NAME:
             resp = self.mapping.get(data.get("email"))
@@ -317,7 +333,16 @@ class MockCollection:
         if resp == {}:
             return None
         return resp
-    
+
+    def update_one(self, data: dict[str, Any],
+                   update: dict[str, Any]) -> MockResponse:
+        if self.collection_name == USERS_COLLECTION_NAME:
+            self.mapping[data.get("email")] = update
+        else:
+            self.mapping[data.get("_id")] = update
+
+        return MockResponse(inserted_id="", modified_count=1)
+
     def __repr__(self) -> str:
         return str(self.mapping)
 
@@ -331,13 +356,15 @@ class MockMongoClient:
         self.inner = {
             db_name: {
                 USERS_COLLECTION_NAME: MockCollection(USERS_COLLECTION_NAME),
-                COMMANDS_COLLECTION_NAME: MockCollection(COMMANDS_COLLECTION_NAME)
+                DEVICES_COLLECTION_NAME: MockCollection(DEVICES_COLLECTION_NAME),
+                COMMANDS_COLLECTION_NAME: MockCollection(
+                    COMMANDS_COLLECTION_NAME)
             }
         }
 
     def get_client(self) -> dict[str, Any]:
         return self.inner
-    
+
     def close(self):
         pass
 
@@ -373,7 +400,7 @@ class MockDatabase:
         Closes the client's connection to mongo.
         """
         self.client.close()
-    
+
     def clear_test_collections(self) -> None:
         pass
 

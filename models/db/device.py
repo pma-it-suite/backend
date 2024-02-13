@@ -6,4 +6,5 @@ from typing import Optional
 class Device(BaseModelWithId):
     name: str
     user_id: Id
-    metadata: Optional[Metadata]
+    command_ids: list[Id] = []
+    metadata: Optional[Metadata] = {}

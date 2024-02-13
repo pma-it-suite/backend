@@ -10,6 +10,7 @@ pytest `conftest.py` file that holds global fixtures for tests
 import os
 import logging
 from typing import Callable, Dict, Any, Optional
+import uuid
 
 import pytest
 import fastapi
@@ -17,11 +18,17 @@ from icecream import ic
 from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
+from config.db import get_commands_collection, get_devices_collection
+from models.db.command import Command, CommandNames, CommandStatus
+from models.db.device import Device
+
 
 import models.routes.users as user_models
 import models.db.common as common_models
 import models.db as db_models
+from utils.commands import get_command_from_db_or_404
 import utils.users as user_utils
+import utils.devices as device_utils
 
 # TODO @felipearce: very hacky fix if possible
 get_db_instance = None
@@ -36,10 +43,11 @@ def pytest_configure(config):
     any other statements for setup must be placed afterwards.
     """
     os.environ['_called_from_test'] = 'True'
-    os.environ['_called_from_test_with_mock'] = 'True'
+    # os.environ['_called_from_test_with_mock'] = 'True'
 
     # TODO @felipearce: very hacky fix if possible
-    # this is because the db instance is created as soon as the module is imported
+    # this is because the db instance is created as soon as the module is
+    # imported
     from config.db import _get_global_database_instance
     global get_db_instance
     get_db_instance = _get_global_database_instance
@@ -99,6 +107,7 @@ def registered_user(
     """
     user, _ = registered_user_factory()
     return user
+
 
 @pytest.fixture(scope='function')
 def registered_user_orig(
@@ -291,3 +300,99 @@ def generate_random_register_user_request(
         "user_type": user_type,
     }
     return user_models.register_user.RegisterUserRequest(**user_data)
+
+
+@pytest.fixture(autouse=True)
+def get_user_from_db():
+    def _get_user_from_db(identifier: str | common_models.Id):
+        user = user_utils.get_db_user_or_throw_if_404(identifier)
+        return user
+
+    return _get_user_from_db
+
+
+@pytest.fixture(autouse=True)
+def get_device_from_db():
+    def _get_device_from_db(identifier: common_models.Id):
+        device = device_utils.get_device_from_db_or_404(identifier)
+        return device
+
+    return _get_device_from_db
+
+
+@pytest.fixture(scope='function')
+def unregistered_command_factory():
+    def _factory():
+        command_data = {
+            "status": CommandStatus.PENDING,  # default status
+            "name": CommandNames.UPDATE,
+            "device_id": str(uuid.uuid4()),
+            "issuer_id": str(uuid.uuid4())
+        }
+        command = Command(**command_data)
+        return command
+    return _factory
+
+
+@pytest.fixture(scope='function')
+def unregistered_command(unregistered_command_factory):
+    return unregistered_command_factory()
+
+
+@pytest.fixture(scope='function')
+def registered_command_factory(unregistered_command_factory):
+    def _factory(device_id: Optional[common_models.Id] = None):
+        command = unregistered_command_factory()
+        if device_id:
+            command.device_id = device_id
+        result = get_commands_collection().insert_one(command.dict())
+        if not result.inserted_id:
+            raise Exception("Failed to create command")
+        return command
+    return _factory
+
+
+@pytest.fixture(scope='function')
+def registered_command(registered_command_factory):
+    return registered_command_factory()
+
+
+@pytest.fixture(scope='function')
+def get_command_from_db():
+    def _factory(command_id: common_models.Id):
+        return get_command_from_db_or_404(command_id)
+    return _factory
+
+
+@pytest.fixture(scope='function')
+def unregistered_device_factory():
+    def _factory():
+        device_data = {
+            "name": "test device",
+            "user_id": str(uuid.uuid4()),
+            "command_ids": [],
+        }
+        device = Device(**device_data)
+        return device
+    return _factory
+
+
+@pytest.fixture(scope='function')
+def unregistered_device(unregistered_device_factory):
+    return unregistered_device_factory()
+
+
+@pytest.fixture(scope='function')
+def registered_device_factory(unregistered_device_factory):
+    def _factory():
+        device = unregistered_device_factory()
+        result = get_devices_collection().insert_one(device.dict())
+        if not result.inserted_id:
+            raise Exception("Failed to create device")
+        return device
+    return _factory
+
+
+@pytest.fixture(scope='function')
+def registered_device(registered_device_factory):
+    return registered_device_factory()
