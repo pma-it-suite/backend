@@ -4,32 +4,32 @@ from enum import auto
 
 
 class CommandNames(AutoName):
-    UPDATE = auto()
-    TEST = auto()
+    Update = auto()
+    Test = auto()
 
 
 class CommandStatus(AutoName):
     # command has started running
-    RUNNING = auto()
+    Running = auto()
 
     # command is waiting for some resource
-    BLOCKED = auto()
+    Blocked = auto()
 
     # command has exited successfully
-    TERMINATED = auto()
+    Terminated = auto()
 
     # command has exited with an error
-    FAILED = auto()
+    Failed = auto()
 
     # command is ready but not running
-    READY = auto()
+    Ready = auto()
 
     # command is waiting to be sent to the device's ready queue
-    PENDING = auto()
+    Pending = auto()
 
-    SENT = auto()
+    Sent = auto()
 
-    RECEIVED = auto()
+    Received = auto()
 
 
 class Command(BaseModelWithId):

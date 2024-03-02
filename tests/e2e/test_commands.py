@@ -64,7 +64,7 @@ class TestCreateCommand:
             self, registered_device, registered_user, get_register_command_req, get_device_from_db):
         json_dict = get_register_command_req(
             registered_device.get_id(),
-            CommandNames.UPDATE,
+            CommandNames.Update,
             registered_user.get_id())
         endpoint_url = get_command_endpoint_str() + "/create"
         response = client.post(endpoint_url, json=json_dict)
@@ -78,7 +78,7 @@ class TestCreateCommand:
             self, unregistered_device, registered_user, get_register_command_req):
         json_dict = get_register_command_req(
             unregistered_device.get_id(),
-            CommandNames.UPDATE,
+            CommandNames.Update,
             registered_user.get_id())
         endpoint_url = get_command_endpoint_str() + "/create"
         response = client.post(endpoint_url, json=json_dict)
@@ -93,7 +93,7 @@ class TestCreateBatchCommand:
         devices = [registered_device_factory() for _ in range(5)]
         json_dict = CreateBatchRequest(**{
             "device_ids": [device.get_id() for device in devices],
-            "name": CommandNames.UPDATE,
+            "name": CommandNames.Update,
             "issuer_id": registered_user.get_id()
         }).model_dump()
         endpoint_url = get_command_endpoint_str() + "/batch/create"
@@ -112,7 +112,7 @@ class TestCreateBatchCommand:
             self, unregistered_device, registered_user):
         json_dict = CreateBatchRequest(**{
             "device_ids": [unregistered_device.get_id()],
-            "name": CommandNames.UPDATE,
+            "name": CommandNames.Update,
             "issuer_id": registered_user.get_id()
         }).model_dump()
         endpoint_url = get_command_endpoint_str() + "/batch/create"
@@ -126,21 +126,21 @@ class TestUpdateCommandStatus:
     def test_update_command_status_success(
             self, registered_command, get_update_status_request_factory, get_command_from_db):
         status = get_command_from_db(registered_command.get_id()).status
-        assert status == CommandStatus.PENDING.value
+        assert status == CommandStatus.Pending.value
 
         endpoint_url = get_command_endpoint_str() + "/update/status"
         request = get_update_status_request_factory(
-            registered_command.get_id(), CommandStatus.RUNNING)
+            registered_command.get_id(), CommandStatus.Running)
         response = client.patch(endpoint_url, json=request)
         assert response.status_code == 204
         status = get_command_from_db(registered_command.get_id()).status
-        assert status == CommandStatus.RUNNING.value
+        assert status == CommandStatus.Running.value
 
     def test_update_command_status_no_command_fail(
             self, unregistered_command, get_update_status_request_factory):
         endpoint_url = get_command_endpoint_str() + "/update/status"
         request = get_update_status_request_factory(
-            unregistered_command.get_id(), CommandStatus.RUNNING)
+            unregistered_command.get_id(), CommandStatus.Running)
         response = client.patch(endpoint_url, json=request)
         assert response.status_code == 404
         assert "No command found" in response.json().get("detail")

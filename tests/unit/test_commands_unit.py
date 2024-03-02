@@ -16,7 +16,7 @@ def get_register_request_factory():
     def __get_register_request(user_id: Id, device_ids: list[Id]):
         return CreateBatchRequest(**{
             "device_ids": device_ids,
-            "name": CommandNames.UPDATE,
+            "name": CommandNames.Update,
             "issuer_id": user_id
         })
     return __get_register_request
@@ -68,7 +68,7 @@ class TestUpdateStatusUnit:
     async def test_update_command_status_fails(self, registered_command, get_update_status_request_factory):
         # Arrange
         request = get_update_status_request_factory(
-            registered_command.get_id(), CommandStatus.RUNNING)
+            registered_command.get_id(), CommandStatus.Running)
 
         @patch('routes.commands.commands_collection')
         async def inner(mock_collection):

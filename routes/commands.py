@@ -108,7 +108,7 @@ async def get_most_recent_command(
     command = commands_collection.find_one(
         {
             'device_id': device_id,
-            'status': CommandStatus.PENDING.value
+            'status': CommandStatus.Pending.value
         },
         sort=[('$natural', ASCENDING)])
 
@@ -130,7 +130,7 @@ async def get_most_recent_command(
 async def create_command(request: cmd_models.create_command.CreateCommandRequest):
     get_device_from_db_or_404(request.device_id)
     command_data = {
-        "status": CommandStatus.PENDING,  # default status
+        "status": CommandStatus.Pending,  # default status
         "args": request.args,
         "name": request.name,
         "device_id": request.device_id,
@@ -166,7 +166,7 @@ async def create_commands_for_multiple_devices(request: cmd_models.create_batch.
                            "args": request.args,
                            "device_id": device_id,
                            "issuer_id": request.issuer_id,
-                           "status": CommandStatus.PENDING  # default status
+                           "status": CommandStatus.Pending  # default status
                            }) for device_id in devices]
 
     response = commands_collection.insert_many(

@@ -324,8 +324,8 @@ def get_device_from_db():
 def unregistered_command_factory():
     def _factory():
         command_data = {
-            "status": CommandStatus.PENDING,  # default status
-            "name": CommandNames.UPDATE,
+            "status": CommandStatus.Pending,  # default status
+            "name": CommandNames.Update,
             "device_id": str(uuid.uuid4()),
             "issuer_id": str(uuid.uuid4())
         }
