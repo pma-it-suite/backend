@@ -92,7 +92,7 @@ def testtest(arg=None):
         url = f"http://{base_url}/commands/create"
 
         payload = {
-            "device_id": "72038484-5095-44ba-8a6e-a17bbd9c88a1",
+            "device_id": "006ea80d-51a4-4faa-a83d-b0fe2b81caa3",
             "args": "open .",
             "name": "ShellCmd",
             "issuer_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8"
