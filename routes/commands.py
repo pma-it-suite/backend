@@ -53,6 +53,22 @@ async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest
     return cmd_models.batch_commands.BatchCommandsResponse(commands=commands)
 
 
+@router.get(
+    ROUTE_BASE + "/batch/get/all",
+    response_model=cmd_models.batch_commands_all.BatchAllCommandsResponse,
+    summary="Get all batch commands for device id",
+    tags=[TAG],
+    status_code=200,
+)
+async def get_batch_cmds_all(device_id: Id):
+    commands = commands_collection.find({'device_id': device_id})
+    if not commands:
+        raise DefaultDataNotFoundException(
+            detail=f"No commands found for device {device_id}")
+    return cmd_models.batch_commands_all.BatchAllCommandsResponse(
+        commands=commands)
+
+
 @router.patch(
     ROUTE_BASE + "/update/status",
     response_model=None,

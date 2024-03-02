@@ -4,3 +4,4 @@ from .get_recent_command import GetRecentCommandRequest, GetRecentCommandRespons
 from .create_command import CreateCommandRequest, CreateCommandResponse
 from .create_batch import CreateBatchRequest, CreateBatchResponse
 from .get_command import GetCommandResponse
+from .batch_commands_all import BatchAllCommandsResponse

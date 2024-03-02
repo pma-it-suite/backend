@@ -5,6 +5,7 @@ from enum import auto
 
 class CommandNames(AutoName):
     UPDATE = auto()
+    TEST = auto()
 
 
 class CommandStatus(AutoName):
@@ -25,6 +26,10 @@ class CommandStatus(AutoName):
 
     # command is waiting to be sent to the device's ready queue
     PENDING = auto()
+
+    SENT = auto()
+
+    RECEIVED = auto()
 
 
 class Command(BaseModelWithId):

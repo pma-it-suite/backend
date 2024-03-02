@@ -72,6 +72,64 @@ def auto_pep():
     return 0
 
 
+def testtest(arg=None):
+    import requests
+    arg = str(arg)
+
+    base_url = "localhost:5001"
+
+    if arg == "0":
+        url = f"http://{base_url}/commands/create"
+
+        payload = {
+            "device_id": "72038484-5095-44ba-8a6e-a17bbd9c88a1",
+            "args": "args",
+            "name": "TEST",
+            "issuer_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8"
+        }
+
+    elif arg == "1":
+        url = f"http://{base_url}/devices/register"
+
+        payload = {
+            "device_name": "name",
+            "issuer_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8",
+            "user_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8"
+        }
+
+    elif arg == "3":
+        # register user
+        url = f"http://{base_url}/users/register"
+
+        payload = {
+            "name": "name",
+            "email": "email",
+            "raw_password": "raw_password",
+            "subscription_id": "subscription_id",
+            "tenant_id": "tenant_id",
+            "role_id": "role_id",
+            "user_type": "USER"
+        }
+
+    elif arg == "2":
+        url = f"http://{base_url}/commands/batch/get/all"
+        payload = {"device_id": "123"}
+        print("firing: ", url, payload)
+        response = requests.get(url, params=payload)
+        print(response.json())
+        print(response.status_code)
+        return
+
+    else:
+        print("Invalid argument, arg:", arg)
+        return
+
+    print("firing: ", url, payload)
+    response = requests.post(url, json=payload)
+    print(response.json())
+    print(response.status_code)
+
+
 if __name__ == '__main__':
     fire.Fire({'run': run, 'test': test, "lint": lint,
-              "autofmt": auto_pep, "coverage": coverage})
+              "autofmt": auto_pep, "coverage": coverage, "testtest": testtest})
