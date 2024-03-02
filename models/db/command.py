@@ -6,6 +6,7 @@ from enum import auto
 class CommandNames(AutoName):
     Update = auto()
     Test = auto()
+    ShellCmd = auto()
 
 
 class CommandStatus(AutoName):

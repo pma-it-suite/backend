@@ -84,7 +84,17 @@ def testtest(arg=None):
         payload = {
             "device_id": "72038484-5095-44ba-8a6e-a17bbd9c88a1",
             "args": "args",
-            "name": "TEST",
+            "name": "Test",
+            "issuer_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8"
+        }
+
+    elif arg == "4":
+        url = f"http://{base_url}/commands/create"
+
+        payload = {
+            "device_id": "72038484-5095-44ba-8a6e-a17bbd9c88a1",
+            "args": "open .",
+            "name": "ShellCmd",
             "issuer_id": "ee9470de-54a4-419c-b34a-ba2fa18731d8"
         }
 
