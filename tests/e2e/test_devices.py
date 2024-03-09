@@ -106,3 +106,38 @@ class TestGetDevice:
         assert "detail" in response.json()
         assert response.json().get(
             "detail") == f"No device found with id {unregistered_device.get_id()}"
+
+
+class TestGetDevices:
+    def test_get_devices_by_user_id_successful(
+            self, registered_user, registered_device_factory, get_device_from_db):
+        """
+        Tries to query a registered device from the database
+        succesfully.
+        """
+        registered_device = registered_device_factory(registered_user.get_id())
+        endpoint_url = "/devices/get/all"
+        response = client.get(
+            endpoint_url, params={
+                "user_id": registered_user.get_id()})
+
+        assert response.status_code == 200
+        assert "devices" in response.json()
+        assert len(response.json().get("devices")) == 1
+        assert response.json().get("devices")[0].get(
+            "_id") == registered_device.get_id()
+
+    def test_get_devices_by_user_id_404_no_user_fail(
+            self, unregistered_user):
+        """
+        Tries to query a nonexistent device expecting 404 failure.
+        """
+        endpoint_url = "/devices/get/all"
+        response = client.get(
+            endpoint_url, params={
+                "user_id": unregistered_user.get_id()})
+
+        assert response.status_code == 404
+        assert "detail" in response.json()
+        assert response.json().get(
+            "detail") == f"no user found with user identifier: {unregistered_user.get_id()}"

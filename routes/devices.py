@@ -72,5 +72,6 @@ async def fetch_device(device_id: Id):
     status_code=200,
 )
 async def fetch_devices(user_id: Id):
+    get_db_user_or_throw_if_404(user_id)
     devices = get_many_devices_from_db_or_404_by_user_id(user_id)
     return device_models.get_devices.GetDevicesResponse(devices=devices)

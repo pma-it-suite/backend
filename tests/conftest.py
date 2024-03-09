@@ -386,8 +386,10 @@ def unregistered_device(unregistered_device_factory):
 
 @pytest.fixture(scope='function')
 def registered_device_factory(unregistered_device_factory):
-    def _factory():
+    def _factory(user_id: Optional[common_models.Id] = None):
         device = unregistered_device_factory()
+        if user_id:
+            device.user_id = user_id
         result = get_devices_collection().insert_one(device.dict())
         if not result.inserted_id:
             raise Exception("Failed to create device")
