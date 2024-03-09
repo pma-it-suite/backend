@@ -30,7 +30,7 @@ def test(name=None, args=None):
     os.system(exec_str)
 
 
-def coverage(name=None, open=False):
+def coverage(open=False, name=None):
     """
     Runs pytest with coverage and generates a coverage report.
 
