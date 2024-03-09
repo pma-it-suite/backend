@@ -105,4 +105,4 @@ class TestGetDevice:
         assert response.status_code == 404
         assert "detail" in response.json()
         assert response.json().get(
-            "detail") == f"Device {unregistered_device.get_id()} not found"
+            "detail") == f"No device found with id {unregistered_device.get_id()}"

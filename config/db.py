@@ -140,7 +140,6 @@ class Database:
         """
         Creates a Database instance with a MongoClient set to the global DB_URI.
         """
-        logging.debug(f"DB_URI: {DB_URI}")
         print(f"DB_URI: {DB_URI}")
         self.client = MongoClient(DB_URI)
         self.database_name = _get_database_name_str()

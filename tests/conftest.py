@@ -11,6 +11,7 @@ import os
 import logging
 from typing import Callable, Dict, Any, Optional
 import uuid
+import dotenv
 
 import pytest
 import fastapi
@@ -42,6 +43,7 @@ def pytest_configure(config):
     The change of the testing flag **MUST** be the first statement done here,
     any other statements for setup must be placed afterwards.
     """
+    dotenv.load_dotenv()
     os.environ['_called_from_test'] = 'True'
     # os.environ['_called_from_test_with_mock'] = 'True'
 

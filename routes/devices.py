@@ -52,7 +52,7 @@ async def register_device(
         device_id=response.inserted_id)
 
 
-@router.post(
+@router.get(
     ROUTE_BASE + "/get",
     response_model=device_models.get_device.GetDeviceResponse,
     summary="Get a device by id",
@@ -64,7 +64,7 @@ async def fetch_device(device_id: Id):
     return device_models.get_device.GetDeviceResponse(device=device)
 
 
-@router.post(
+@router.get(
     ROUTE_BASE + "/get/all",
     response_model=device_models.get_devices.GetDevicesResponse,
     summary="Get devices by user id",

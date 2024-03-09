@@ -6,8 +6,9 @@ Also instanciates the `FastAPI()` router instance.
 """
 import os
 import dotenv
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv.find_dotenv())
 DB_URI = os.environ.get("MONGO_DB_URI")
+MONGO_DB_URI = os.environ.get("MONGO_DB_URI")
 SERVER_HOST = os.environ.get("SERVER_HOST")
 SERVER_PORT = os.environ.get("SERVER_PORT")
 DB_URI = os.environ.get("MONGO_DB_URI")
