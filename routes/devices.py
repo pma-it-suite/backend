@@ -1,7 +1,9 @@
 from fastapi import APIRouter
 from config.db import get_database, get_users_collection, get_devices_collection
+from models.db.common import Id
 from models.db.device import Device
 import models.routes.devices as device_models
+from utils.devices import get_device_from_db_or_404, get_many_devices_from_db_or_404_by_user_id
 from utils.errors import DatabaseNotModified
 from utils.users import get_db_user_or_throw_if_404
 import uuid
@@ -48,3 +50,27 @@ async def register_device(
 
     return device_models.register_device.RegisterDeviceResponse(
         device_id=response.inserted_id)
+
+
+@router.post(
+    ROUTE_BASE + "/get",
+    response_model=device_models.get_device.GetDeviceResponse,
+    summary="Get a device by id",
+    tags=[TAG],
+    status_code=200,
+)
+async def fetch_device(device_id: Id):
+    device = get_device_from_db_or_404(device_id)
+    return device_models.get_device.GetDeviceResponse(device=device)
+
+
+@router.post(
+    ROUTE_BASE + "/get/all",
+    response_model=device_models.get_devices.GetDevicesResponse,
+    summary="Get devices by user id",
+    tags=[TAG],
+    status_code=200,
+)
+async def fetch_devices(user_id: Id):
+    devices = get_many_devices_from_db_or_404_by_user_id(user_id)
+    return device_models.get_devices.GetDevicesResponse(devices=devices)

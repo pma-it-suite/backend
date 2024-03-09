@@ -75,3 +75,34 @@ class TestRegisterDevice:
         response = client.post(endpoint_url, json=json_dict)
 
         assert not check_register_device_response_valid(response)
+
+
+class TestGetDevice:
+    def test_get_device_successful(
+            self, registered_device, get_device_from_db):
+        """
+        Tries to query a registered device from the database
+        succesfully.
+        """
+        endpoint_url = "/devices/get"
+        response = client.get(
+            endpoint_url, params={
+                "device_id": registered_device.get_id()})
+
+        assert response.status_code == 200
+        assert "device" in response.json()
+        assert response.json().get("device").get("_id") == registered_device.get_id()
+
+    def test_get_device_fail_404_no_device(self, unregistered_device):
+        """
+        Tries to query a nonexistent device expecting 404 failure.
+        """
+        endpoint_url = "/devices/get"
+        response = client.get(
+            endpoint_url, params={
+                "device_id": unregistered_device.get_id()})
+
+        assert response.status_code == 404
+        assert "detail" in response.json()
+        assert response.json().get(
+            "detail") == f"Device {unregistered_device.get_id()} not found"

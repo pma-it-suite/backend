@@ -18,3 +18,12 @@ def get_device_from_db_or_404(device_id: Id) -> Device | RaisesException:
         raise DefaultDataNotFoundException(
             detail=f"No device found with id {device_id}")
     return Device(**device)
+
+
+def get_many_devices_from_db_or_404_by_user_id(
+        user_id: Id) -> list[Device] | RaisesException:
+    devices = [x for x in devices_collection.find({'user_id': user_id})]
+    if len(devices) == 0:
+        raise DefaultDataNotFoundException(
+            detail=f"No devices found with user id {user_id}")
+    return [Device(**x) for x in devices]
