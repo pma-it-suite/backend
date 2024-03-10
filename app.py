@@ -19,7 +19,7 @@ app.include_router(devices_router)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello, TEST!"}
+    return {"message": "Hello, TEST NEW!"}
 
 
 @app.middleware("http")
