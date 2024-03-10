@@ -16,7 +16,8 @@ def run(debug=True):
 
 
 def prod():
-    os.system(f"python -m uvicorn app:app --host 0.0.0.0 --port={PROD_PORT}")
+    os.system(
+        f"python3.10 -m uvicorn app:app --host 0.0.0.0 --port={PROD_PORT}")
 
 
 def test(name=None, args=None):
