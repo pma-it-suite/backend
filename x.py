@@ -147,4 +147,4 @@ def testtest(arg=None):
 
 if __name__ == '__main__':
     fire.Fire({'run': run, 'test': test, "lint": lint,
-              "autofmt": auto_pep, "coverage": coverage, "testtest": testtest})
+              "autofmt": auto_pep, "coverage": coverage, "testtest": testtest, "prod": prod})
