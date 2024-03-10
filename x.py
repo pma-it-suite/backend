@@ -4,6 +4,7 @@ import fire
 import os
 
 DEBUG_PORT = 5001
+PROD_PORT = 5001
 
 
 def run(debug=True):
@@ -12,6 +13,10 @@ def run(debug=True):
     If debug is True, the application will automatically reload on code changes.
     """
     os.system(f"uvicorn app:app --reload --port={DEBUG_PORT}")
+
+
+def prod():
+    os.system(f"uvicorn app:app --host 0.0.0.0 --port={PROD_PORT}")
 
 
 def test(name=None, args=None):
