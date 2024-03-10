@@ -14,6 +14,13 @@ app.include_router(user_router)
 app.include_router(commands_router)
 app.include_router(devices_router)
 
+# test hello
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello, TEST!"}
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
