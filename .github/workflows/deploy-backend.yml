@@ -1,0 +1,35 @@
+name: Deploy Backend on Test Success
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.10
+
+    - name: Install dependencies
+      run: python3.10 -m pip install -r requirements.txt
+
+    - name: Run tests
+      run: python3.10 ./x.py test
+      env: 
+        MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
+        JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
+    - name: Trigger Jenkins Deployment
+      if: success()
+      run: |
+        curl -X POST ${{ secrets.JENKINS_URL }}
+      env:
+        JENKINS_URL: ${{ secrets.JENKINS_URL }}
