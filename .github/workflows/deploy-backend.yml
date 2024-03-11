@@ -1,7 +1,7 @@
 name: Deploy Backend on Test Success
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -27,9 +27,27 @@ jobs:
         MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
         JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
-    - name: Trigger Jenkins Deployment
-      if: success()
-      run: |
-        curl -X POST ${{ secrets.JENKINS_URL }}
-      env:
-        JENKINS_URL: ${{ secrets.JENKINS_URL }}
+  deploy:
+    needs: test-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Add additional steps to test/build your code here
+
+      - name: Fetch Jenkins CSRF crumb and trigger Jenkins job
+        run: |
+          # Fetch the CSRF crumb from Jenkins
+          crumb=$(curl -s "${{ secrets.JENKINS_URL }}/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)" -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}")
+          echo "Crumb fetched: $crumb"
+          
+          # Trigger the Jenkins job
+          curl -X POST "${{ secrets.JENKINS_URL }}/job/itxBackend/build" \
+          -u "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}" \
+          -H "$crumb" \
+          -H "Content-Type:application/x-www-form-urlencoded"
+        env:
+          JENKINS_URL: ${{ secrets.JENKINS_URL }}
+          JENKINS_USER: ${{ secrets.JENKINS_USER }}
+          JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
