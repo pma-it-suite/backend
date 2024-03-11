@@ -1,7 +1,7 @@
 name: Deploy Backend on Test Success
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
@@ -26,10 +26,3 @@ jobs:
       env: 
         MONGO_DB_URI: ${{ secrets.MONGO_DB_URI }}
         JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-
-    - name: Trigger Jenkins Deployment
-      if: success()
-      run: |
-        curl -X POST ${{ secrets.JENKINS_URL }}
-      env:
-        JENKINS_URL: ${{ secrets.JENKINS_URL }}
