@@ -41,7 +41,7 @@ async def register_device(
         secret_data.get('user_id'), secret_data.get('secret'))
 
     # TODO @felipearce: make the jwt data typed
-    if not all([user_id_from_secret == user_id, raw_secret is not None,
+    if not all([user_id_from_secret is not None, user_id_from_secret == user_id, raw_secret is not None,
                 hash_and_compare(raw_secret, secret)]):
         msg = f"invalid secret for user_id: {user_id}"
         raise InvalidPasswordException(detail=msg)

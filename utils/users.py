@@ -54,7 +54,8 @@ def register_user_to_db_and_get_secrets(
     encoded_new_pass = user_register_form.raw_password.encode('utf-8')
     password_hash = str(bcrypt.hashpw(encoded_new_pass, bcrypt.gensalt()))
 
-    encoded_secret = str(uuid4()).encode('utf-8')
+    encoded_secret = user_register_form.raw_user_secret.encode(
+        'utf-8') or str(uuid4()).encode('utf-8')
     user_secret_hash = str(bcrypt.hashpw(encoded_secret, bcrypt.gensalt()))
 
     db_user = DbUser(

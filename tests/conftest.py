@@ -307,6 +307,7 @@ def generate_random_register_user_request(
         "role_id": fake.uuid4(),
         "subscription_id": fake.uuid4(),
         "user_type": user_type,
+        "raw_user_secret": fake.uuid4()
     }
     return user_models.register_user.RegisterUserRequest(**user_data)
 

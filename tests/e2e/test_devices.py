@@ -15,9 +15,9 @@ client = TestClient(app)
 @pytest.fixture
 def get_register_device_req() -> Dict[str, Any]:
     def __get_register_device_req(
-            device_name: str, user_id: str, issuer_id: str) -> Dict[str, Any]:
+            device_name: str, user_id: str, issuer_id: str, user_secret: str) -> Dict[str, Any]:
         return {"device_name": device_name,
-                "user_id": user_id, "issuer_id": issuer_id}
+                "user_id": user_id, "issuer_id": issuer_id, "user_secret": user_secret}
 
     return __get_register_device_req
 
@@ -42,21 +42,23 @@ def get_device_register_endpoint_string() -> str:
 
 
 class TestRegisterDevice:
-    def test_register_device_successful(self, registered_user: user_models.DbUser, get_register_device_req: Callable[[
-                                        str, str, str], Dict[str, Any]], get_user_from_db, get_device_from_db, get_header_dict_from_user_id) -> None:
+    def test_register_device_successful(self, get_register_device_req: Callable[[
+                                        str, str, str], Dict[str, Any]], get_user_from_db, get_device_from_db, registered_user_orig) -> None:
         """
         Tries to register a device for an existing user
         """
+        registered_user, registered_user_form = registered_user_orig
+        device_secret = Token.get_enc_token_str_from_dict(
+            {"secret": registered_user_form.raw_user_secret, "user_id": registered_user.get_id()})
         json_dict = get_register_device_req(
             "test_device",
             registered_user.get_id(),
-            registered_user.get_id())
+            registered_user.get_id(),
+            device_secret)
         endpoint_url = get_device_register_endpoint_string()
         response = client.post(
             endpoint_url,
-            json=json_dict,
-            headers=get_header_dict_from_user_id(
-                registered_user.get_id()))
+            json=json_dict)
 
         assert check_register_device_response_valid(response)
 
@@ -74,7 +76,8 @@ class TestRegisterDevice:
         json_dict = get_register_device_req(
             "test_device",
             unregistered_user.get_id(),
-            unregistered_user.get_id())
+            unregistered_user.get_id(),
+            "test")
         endpoint_url = get_device_register_endpoint_string()
         response = client.post(
             endpoint_url,
