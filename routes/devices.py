@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from config.db import get_database, get_users_collection, get_devices_collection
+from config.db import get_users_collection, get_devices_collection
 from models.db.common import Id
 from models.db.device import Device
 import models.routes.devices as device_models
@@ -12,8 +12,8 @@ router = APIRouter()
 ROUTE_BASE = "/devices"
 TAG = "devices"
 
-users_collection = get_users_collection()
-devices_collection = get_devices_collection()
+devices_collection = get_devices_collection
+users_collection = get_users_collection
 
 
 @router.post(
@@ -25,6 +25,8 @@ devices_collection = get_devices_collection()
 )
 async def register_device(
         request: device_models.register_device.RegisterDeviceRequest):
+    devices_collection_handle = devices_collection()
+    users_collection_handle = users_collection()
     user_id = request.user_id
     user = get_db_user_or_throw_if_404(user_id)
 
@@ -34,15 +36,15 @@ async def register_device(
     device_id = device.get_id()
 
     user.device_ids.append(device_id)
-    response = users_collection.update_one({"_id": user_id},
-                                           {"$set": {
-                                               "device_ids": user.device_ids
-                                           }})
+    response = users_collection_handle.update_one({"_id": user_id},
+                                                  {"$set": {
+                                                      "device_ids": user.device_ids
+                                                  }})
 
     if response.modified_count == 0:
         raise DatabaseNotModified(detail="Failed update user with device")
 
-    response = devices_collection.insert_one(device.dict())
+    response = devices_collection_handle.insert_one(device.dict())
     if not response.inserted_id:
         raise DatabaseNotModified(
             detail="Failed to create device with name " +

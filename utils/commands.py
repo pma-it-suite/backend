@@ -3,10 +3,9 @@ from models.db.common import Id, RaisesException
 from models.db.command import Command
 from utils.errors import DefaultDataNotFoundException
 
-commands_collection = get_commands_collection()
-
 
 def get_command_from_db(command_id: Id) -> dict | None:
+    commands_collection = get_commands_collection()
     command = commands_collection.find_one({'_id': command_id})
     return command
 
@@ -20,6 +19,7 @@ def get_command_from_db_or_404(command_id: Id) -> Command | RaisesException:
 
 
 def get_many_commands_from_db(command_ids: list[Id]) -> list[dict | None]:
+    commands_collection = get_commands_collection()
     filter = {"_id": {"$in": command_ids}}
     response = [x for x in commands_collection.find(filter)]
     return response

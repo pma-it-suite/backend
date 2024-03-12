@@ -29,7 +29,9 @@ class TestRegisterDeviceUnit:
         async def inner(mock_collection):
             db_response = MagicMock()
             db_response.modified_count = 0
-            mock_collection.update_one.return_value = db_response
+            nested_mock = MagicMock()
+            nested_mock.update_one.return_value = db_response
+            mock_collection.return_value = nested_mock
 
             # Act
             try:
@@ -55,7 +57,9 @@ class TestRegisterDeviceUnit:
         async def inner(mock_collection):
             db_response = MagicMock()
             db_response.inserted_id = None
-            mock_collection.insert_one.return_value = db_response
+            nested_mock = MagicMock()
+            nested_mock.insert_one.return_value = db_response
+            mock_collection.return_value = nested_mock
 
             # Act
             try:

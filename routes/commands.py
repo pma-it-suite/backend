@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter
-from config.db import get_devices_collection, get_users_collection, get_commands_collection
+from config.db import get_commands_collection, get_devices_collection
 from bson.objectid import ObjectId
 from models.db.command import CommandStatus, Command
 import models.routes.users as models
@@ -24,9 +24,7 @@ router = APIRouter()
 ROUTE_BASE = "/commands"
 TAG = "commands"
 
-users_collection = get_users_collection()
-commands_collection = get_commands_collection()
-devices_collection = get_devices_collection()
+commands_collection = get_commands_collection
 
 
 @router.get(
@@ -61,7 +59,8 @@ async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest
     status_code=200,
 )
 async def get_batch_cmds_all(device_id: Id):
-    commands = commands_collection.find({'device_id': device_id})
+    commands_collection_handle = commands_collection()
+    commands = commands_collection_handle.find({'device_id': device_id})
     if not commands:
         raise DefaultDataNotFoundException(
             detail=f"No commands found for device {device_id}")
@@ -78,17 +77,18 @@ async def get_batch_cmds_all(device_id: Id):
 )
 async def update_command_status(
         request: cmd_models.command_status.CommandStatusRequest):
+    commands_collection_handle = commands_collection()
     command_id = request.command_id
     status = request.status
 
-    if not commands_collection.find_one({'_id': command_id}):
+    if not commands_collection_handle.find_one({'_id': command_id}):
         raise DefaultDataNotFoundException(
             detail=f"No command found with id {command_id}")
 
-    updated = commands_collection.update_one({'_id': command_id},
-                                             {'$set': {
-                                                 'status': status
-                                             }})
+    updated = commands_collection_handle.update_one({'_id': command_id},
+                                                    {'$set': {
+                                                        'status': status
+                                                    }})
     if updated.modified_count == 0:
         raise DatabaseNotModified(detail=f"Failed to update command status")
 
@@ -104,8 +104,10 @@ async def update_command_status(
 )
 async def get_most_recent_command(
         device_id: Id):
+    commands_collection_handle = commands_collection()
+
     get_device_from_db_or_404(device_id)
-    command = commands_collection.find_one(
+    command = commands_collection_handle.find_one(
         {
             'device_id': device_id,
             'status': CommandStatus.Pending.value
@@ -128,6 +130,8 @@ async def get_most_recent_command(
     status_code=201,
 )
 async def create_command(request: cmd_models.create_command.CreateCommandRequest):
+    devices_collection = get_devices_collection()
+    commands_collection_handle = commands_collection()
     get_device_from_db_or_404(request.device_id)
     command_data = {
         "status": CommandStatus.Pending,  # default status
@@ -138,7 +142,7 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     }
     command = Command(**command_data)
 
-    result = commands_collection.insert_one(command.dict())
+    result = commands_collection_handle.insert_one(command.dict())
     check_insert_was_successful(result, "Failed to create command")
     command_id = result.inserted_id
 
@@ -159,6 +163,7 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     status_code=201,
 )
 async def create_commands_for_multiple_devices(request: cmd_models.create_batch.CreateBatchRequest):
+    commands_collection_handle = commands_collection()
     [get_device_from_db_or_404(device_id) for device_id in request.device_ids]
 
     devices = request.device_ids
@@ -169,7 +174,7 @@ async def create_commands_for_multiple_devices(request: cmd_models.create_batch.
                            "status": CommandStatus.Pending  # default status
                            }) for device_id in devices]
 
-    response = commands_collection.insert_many(
+    response = commands_collection_handle.insert_many(
         [x.dict() for x in commands])
 
     if not response.inserted_ids or len(response.inserted_ids) != len(devices):

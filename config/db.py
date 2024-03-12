@@ -77,16 +77,26 @@ def get_database_client_name() -> str:
     return db_instance.get_database_name()
 
 
+IS_TESTING_GLOB = False
 # Utils for the file that don't have any need to be actually inside the class
+
+
 def _is_testing() -> bool:
     """
     Simple but dynamic function that returns the testing status.
     Can be used for things other than database config.
     """
-    return os.environ.get("_called_from_test") == "True"
+    global IS_TESTING_GLOB
+    return os.environ.get("_called_from_test") == "True" or IS_TESTING_GLOB
 
+
+def _set_is_testing_glob(val: bool) -> None:
+    global IS_TESTING_GLOB
+    IS_TESTING_GLOB = val
 
 # Utils for the file that don't have any need to be actually inside the class
+
+
 def _is_testing_with_mock() -> bool:
     """
     Simple but dynamic function that returns the testing status.
@@ -101,7 +111,8 @@ def _get_database_name_str() -> str:
 
     Returns the production database name if not testing.
     """
-    if _is_testing():
+    global IS_TESTING_GLOB
+    if _is_testing() or IS_TESTING_GLOB:
         test_db_name = _generate_test_database_name()
         return test_db_name
 
@@ -140,9 +151,16 @@ class Database:
         """
         Creates a Database instance with a MongoClient set to the global DB_URI.
         """
-        print(f"DB_URI: {DB_URI}")
         self.client = MongoClient(DB_URI)
         self.database_name = _get_database_name_str()
+        self.__setup_database_indexes()
+
+    def set_and_make_test_db(self):
+        """
+        Sets the database to the test database and makes sure
+        that the indexes are set up.
+        """
+        self.database_name = _generate_test_database_name()
         self.__setup_database_indexes()
 
     def get_database_client(self) -> MongoClient:
@@ -170,7 +188,7 @@ class Database:
 
         Will not interact with the production database at all.
         """
-        current_db_is_for_tests = self.__check_current_db_is_for_testing()
+        current_db_is_for_tests = self._check_current_db_is_for_testing()
 
         if current_db_is_for_tests:
             db_name = self.database_name
@@ -187,13 +205,13 @@ class Database:
         Will never delete the production database, even if it
         is the current database being used.
         """
-        current_db_is_for_tests = self.__check_current_db_is_for_testing()
+        current_db_is_for_tests = self._check_current_db_is_for_testing()
 
         if current_db_is_for_tests:
             test_database_name = self.database_name
             self.client.drop_database(test_database_name)
 
-    def __check_current_db_is_for_testing(self) -> bool:  # pylint: disable=invalid-name
+    def _check_current_db_is_for_testing(self) -> bool:  # pylint: disable=invalid-name
         """
         Safety guard that checks the name of the current database as well
         as the current testing status flags to ensure the database is for tests.
@@ -281,21 +299,32 @@ class Database:
 GLOBAL_DATABASE_INSTANCE = None
 
 
-def _get_global_database_instance() -> Database:
+def _uninstanciate_global_db_instance():
+    global GLOBAL_DATABASE_INSTANCE
+    GLOBAL_DATABASE_INSTANCE = None
+
+
+def _get_global_database_instance(test: Optional[bool] = None) -> Database:
     """
     Primitive and dangerous method to get the database instance
 
     Assures that if you call this, the `global_database_instance` will
     be successfully instanciated before being returned.
     """
+    if test and test is True:
+        global IS_TESTING_GLOB
+        IS_TESTING_GLOB = True
     if _is_testing_with_mock():
         return MockDatabase()
 
     database_already_instanciated = __check_global_db_already_exists()
 
+    global GLOBAL_DATABASE_INSTANCE
     if not database_already_instanciated:
-        global GLOBAL_DATABASE_INSTANCE  # pylint: disable=global-statement
         GLOBAL_DATABASE_INSTANCE = Database()
+
+    if database_already_instanciated and IS_TESTING_GLOB and GLOBAL_DATABASE_INSTANCE._check_current_db_is_for_testing() is False:
+        GLOBAL_DATABASE_INSTANCE.set_and_make_test_db()
 
     return GLOBAL_DATABASE_INSTANCE
 
