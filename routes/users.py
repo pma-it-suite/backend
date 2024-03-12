@@ -12,9 +12,6 @@ router = APIRouter()
 ROUTE_BASE = "/users"
 TAG = "users"
 
-# Initialize MongoDB client
-users_collection = get_users_collection()
-
 
 @router.get(
     ROUTE_BASE + "/get",

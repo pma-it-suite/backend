@@ -4,10 +4,9 @@ from models.db.common import Id, RaisesException
 from models.db.device import Device
 from utils.errors import DefaultDataNotFoundException
 
-devices_collection = get_devices_collection()
-
 
 def get_device_from_db(device_id: Id) -> dict | None:
+    devices_collection = get_devices_collection()
     device = devices_collection.find_one({'_id': device_id})
     return device
 
@@ -22,6 +21,7 @@ def get_device_from_db_or_404(device_id: Id) -> Device | RaisesException:
 
 def get_many_devices_from_db_or_404_by_user_id(
         user_id: Id) -> list[Device] | RaisesException:
+    devices_collection = get_devices_collection()
     devices = [x for x in devices_collection.find({'user_id': user_id})]
     if len(devices) == 0:
         raise DefaultDataNotFoundException(

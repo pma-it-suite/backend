@@ -35,7 +35,15 @@ import utils.devices as device_utils
 get_db_instance = None
 
 
+@pytest.fixture(scope="session", autouse=True)
+def run_before_anything_else():
+    os.environ['_called_from_test'] = 'True'
+    from config.db import _set_is_testing_glob
+    _set_is_testing_glob(True)
+
 # startup process
+
+
 def pytest_configure(config):
     """
     Startup process for tests.
@@ -43,9 +51,7 @@ def pytest_configure(config):
     The change of the testing flag **MUST** be the first statement done here,
     any other statements for setup must be placed afterwards.
     """
-    dotenv.load_dotenv()
     os.environ['_called_from_test'] = 'True'
-    # os.environ['_called_from_test_with_mock'] = 'True'
 
     # TODO @felipearce: very hacky fix if possible
     # this is because the db instance is created as soon as the module is

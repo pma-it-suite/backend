@@ -11,8 +11,6 @@ from icecream import ic
 import utils.errors as exceptions
 import logging
 
-users_collection = get_users_collection()
-
 
 def validate_user_id_or_throw(user_id: Id):
     if not user_id:
@@ -27,6 +25,7 @@ def get_db_user_or_throw_if_404(
 
 
 def _get_raw_user_from_db(user_identifier: Id | EmailStr) -> Optional[RawUser]:
+    users_collection = get_users_collection()
     if "@" in user_identifier:
         filter = {"email": user_identifier}
     else:
@@ -45,6 +44,7 @@ def _get_raw_user_or_throw_if_404(
 
 
 def register_user_to_db(user_register_form: RegisterUserRequest) -> Id:
+    users_collection = get_users_collection()
     encoded_new_pass = user_register_form.raw_password.encode('utf-8')
     password_hash = str(bcrypt.hashpw(encoded_new_pass, bcrypt.gensalt()))
 

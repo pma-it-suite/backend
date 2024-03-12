@@ -6,4 +6,4 @@ repos:
         entry: ./x.py autofmt --
         language: system
         files: '\.py$'
-        stages: [commit]
+        stages: [pre-commit]
