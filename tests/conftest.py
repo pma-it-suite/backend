@@ -20,6 +20,7 @@ from faker import Faker
 from asgiref.sync import async_to_sync
 from requests.models import Response as HTTPResponse
 from config.db import get_commands_collection, get_devices_collection
+from models.db.auth import Token
 from models.db.command import Command, CommandNames, CommandStatus
 from models.db.device import Device
 
@@ -306,6 +307,7 @@ def generate_random_register_user_request(
         "role_id": fake.uuid4(),
         "subscription_id": fake.uuid4(),
         "user_type": user_type,
+        "raw_user_secret": fake.uuid4()
     }
     return user_models.register_user.RegisterUserRequest(**user_data)
 
@@ -406,3 +408,25 @@ def registered_device_factory(unregistered_device_factory):
 @pytest.fixture(scope='function')
 def registered_device(registered_device_factory):
     return registered_device_factory()
+
+
+@pytest.fixture(scope="function")
+def get_header_dict_from_user_id(
+) -> Callable[[common_models.Id], Dict[str, Any]]:
+    """
+    Returns an inner function that creates a valid header token dict
+    from a valid user id and returns it
+    """
+    def _generate_header_for_user_id(
+            user_id: common_models.Id) -> Dict[str, Any]:
+        """
+        Creates an encoded token string from the user's ID and
+        wraps it in a dict with a valid key, returning the result.
+        """
+        payload_dict = {"user_id": user_id}
+        encoded_token_str = Token.get_enc_token_str_from_dict(
+            payload_dict)
+        headers_dict = {"Token": encoded_token_str}
+        return headers_dict
+
+    return _generate_header_for_user_id

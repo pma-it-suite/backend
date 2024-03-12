@@ -1,10 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from config.db import get_users_collection, get_devices_collection
+from models.db.auth import Token
 from models.db.common import Id
 from models.db.device import Device
 import models.routes.devices as device_models
+from utils.auth import get_user_id_from_header_and_check_existence, hash_and_compare
 from utils.devices import get_device_from_db_or_404, get_many_devices_from_db_or_404_by_user_id
-from utils.errors import DatabaseNotModified
+from utils.errors import DatabaseNotModified, InvalidPasswordException
 from utils.users import get_db_user_or_throw_if_404
 import uuid
 
@@ -30,7 +32,19 @@ async def register_device(
     user_id = request.user_id
     user = get_db_user_or_throw_if_404(user_id)
 
-    # TODO @felipearce: add auth to this with header
+    # for now (TODO @felipearce) only the user can register a device for itself
+    # eventually admins should be able to
+
+    secret = user.user_secret_hash
+    secret_data = Token.get_dict_from_enc_token_str(request.user_secret)
+    (user_id_from_secret, raw_secret) = (
+        secret_data.get('user_id'), secret_data.get('secret'))
+
+    # TODO @felipearce: make the jwt data typed
+    if not all([user_id_from_secret is not None, user_id_from_secret == user_id, raw_secret is not None,
+                hash_and_compare(raw_secret, secret)]):
+        msg = f"invalid secret for user_id: {user_id}"
+        raise InvalidPasswordException(detail=msg)
 
     device = Device(**{"name": request.device_name, "user_id": user_id})
     device_id = device.get_id()
@@ -61,7 +75,8 @@ async def register_device(
     tags=[TAG],
     status_code=200,
 )
-async def fetch_device(device_id: Id):
+async def fetch_device(device_id: Id, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
+    # TODO @felipearce: add check if user is allowed to see this device
     device = get_device_from_db_or_404(device_id)
     return device_models.get_device.GetDeviceResponse(device=device)
 
@@ -73,7 +88,8 @@ async def fetch_device(device_id: Id):
     tags=[TAG],
     status_code=200,
 )
-async def fetch_devices(user_id: Id):
+async def fetch_devices(user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
+    # TODO @felipearce: add check if user is allowed to see this
     get_db_user_or_throw_if_404(user_id)
     devices = get_many_devices_from_db_or_404_by_user_id(user_id)
     return device_models.get_devices.GetDevicesResponse(devices=devices)

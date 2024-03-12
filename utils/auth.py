@@ -49,7 +49,7 @@ async def get_user_id_from_header_and_check_existence(  # pylint: disable=invali
     if not user_id:
         detail = "User ID not in JWT header payload dict."
         raise exceptions.InvalidDataException(detail=detail)
-    await user_utils.get_db_user_or_throw_if_404(user_id)
+    user_utils.get_db_user_or_throw_if_404(user_id)
     return user_id
 
 

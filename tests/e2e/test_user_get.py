@@ -80,14 +80,18 @@ class TestGetRegularUser:
     def test_get_user_success(
         self, registered_user_redacted: db_user_models.DbUserRedacted,
         get_identifier_dict_from_user: Callable[
-            [db_user_models.DbUserRedacted], Dict[str, Any]]):
+            [db_user_models.DbUserRedacted], Dict[str, Any]], get_header_dict_from_user_id):
         """
         Tries to query a registered user from the database
         succesfully.
         """
         json_dict = get_identifier_dict_from_user(registered_user_redacted)
         endpoint_url = get_user_query_endpoint_string()
-        response = client.get(endpoint_url, params=json_dict)
+        response = client.get(
+            endpoint_url,
+            params=json_dict,
+            headers=get_header_dict_from_user_id(
+                registered_user_redacted.get_id()))
 
         assert check_get_user_response_valid(response)
         assert check_user_matches_response(response, registered_user_redacted)
@@ -95,26 +99,32 @@ class TestGetRegularUser:
     def test_get_nonexistent_user_fail(
         self, unregistered_user: db_user_models.DbUserRedacted,
         get_identifier_dict_from_user: Callable[
-            [db_user_models.DbUserRedacted], Dict[str, Any]]):
+            [db_user_models.DbUserRedacted], Dict[str, Any]], get_header_dict_from_user_id):
         """
         Tries to query a nonexistent user expecting 404 failure.
         """
         json_dict = get_identifier_dict_from_user(unregistered_user)
         endpoint_url = get_user_query_endpoint_string()
-        response = client.get(endpoint_url, params=json_dict)
+        response = client.get(
+            endpoint_url,
+            params=json_dict,
+            headers=get_header_dict_from_user_id(
+                unregistered_user.get_id()))
 
         assert not check_get_user_response_valid(response)
         assert response.status_code == 404
 
-    def test_get_user_no_data_failure(
-            self, registered_user: db_user_models.DbUserRedacted):
+    def test_get_user_no_data_failure(self):
         """
         Try to query a valid user but sending no data, expecting a 422 failure
         """
-        del registered_user  # unused fixture result
         empty_json_dict = {}
         endpoint_url = get_user_query_endpoint_string()
-        response = client.get(endpoint_url, params=empty_json_dict)
+        response = client.get(
+            endpoint_url,
+            params=empty_json_dict,
+            headers={
+                "token": ""})
 
         assert not check_get_user_response_valid(response)
         assert response.status_code == 422

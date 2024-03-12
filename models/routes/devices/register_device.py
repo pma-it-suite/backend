@@ -6,6 +6,7 @@ class RegisterDeviceRequest(BaseModelWithConfig):
     device_name: str
     user_id: Id
     issuer_id: Id
+    user_secret: str
 
 
 class RegisterDeviceResponse(BaseModelWithConfig):

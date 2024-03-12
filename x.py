@@ -118,12 +118,12 @@ def testtest(arg=None):
         url = f"http://{base_url}/users/register"
 
         payload = {
-            "name": "name",
-            "email": "email",
-            "raw_password": "raw_password",
-            "subscription_id": "subscription_id",
-            "tenant_id": "tenant_id",
-            "role_id": "role_id",
+            "name": "test",
+            "email": "test@admin.com",
+            "raw_password": "testpass",
+            "subscription_id": "testsubid",
+            "tenant_id": "testtenantid",
+            "role_id": "testroleid",
             "user_type": "USER"
         }
 
