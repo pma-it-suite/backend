@@ -36,9 +36,8 @@ async def log_requests(request: Request, call_next):
     return response
 
 origins = [
-    "https://localhost",
-    "http://localhost",
-    "http://localhost:8080",
+    "http://localhost:5173",
+    "localhost:5173",
     "https://itx-app.com",
     "http://itx-app.com",
     "https://api.itx-app.com",
@@ -46,13 +45,12 @@ origins = [
 ]
 
 ALLOWED_HOSTS = [
-    "http://localhost",
-    "http://localhost",
-    "localhost",
     "https://itx-app.com",
     "http://itx-app.com",
     "https://api.itx-app.com",
     "http://api.itx-app.com",
+    "http://localhost:5173",
+    "localhost:5173",
     "*",
 ]
 
