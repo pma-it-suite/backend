@@ -39,8 +39,6 @@ origins = [
     "https://localhost",
     "http://localhost",
     "http://localhost:8080",
-    "http://localhost:*",
-    "https://localhost:*",
     "https://itx-app.com",
     "http://itx-app.com",
     "https://api.itx-app.com",
@@ -48,8 +46,6 @@ origins = [
 ]
 
 ALLOWED_HOSTS = [
-    "http://localhost:*",
-    "https://localhost:*",
     "http://localhost",
     "http://localhost",
     "localhost",
