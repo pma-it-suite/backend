@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from config.db import _is_testing
 from routes.users import router as user_router
 from routes.commands import router as commands_router
 from routes.devices import router as devices_router
@@ -32,29 +35,39 @@ async def log_requests(request: Request, call_next):
     logging.info(f"Outgoing response: {response.status_code}")
     return response
 
-"""
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Run the app in debug or production mode.')
-    parser.add_argument('--debug',
-                        type=bool,
-                        default=False,
-                        help='Run in debug mode.')
-    args = parser.parse_args()
+origins = [
+    "https://localhost",
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:*",
+    "https://localhost:*",
+    "https://itx-app.com",
+    "http://itx-app.com",
+    "https://api.itx-app.com",
+    "http://api.itx-app.com",
+]
 
-    SERVER_HOST = 'localhost' if args.debug else '0.0.0.0'
-    SERVER_PORT = 8080 if args.debug else '5001'
+ALLOWED_HOSTS = [
+    "http://localhost:*",
+    "https://localhost:*",
+    "http://localhost",
+    "http://localhost",
+    "localhost",
+    "https://itx-app.com",
+    "http://itx-app.com",
+    "https://api.itx-app.com",
+    "http://api.itx-app.com",
+    "*",
+]
 
-    if args.debug:
-        app.run(debug=True, host=SERVER_HOST, port=SERVER_PORT)
-    else:
-        domain_name = "itx.kdns.ooo"
-        file_base = f"/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/{domain_name}/{domain_name}"
-        cert = file_base + ".crt"
-        key = file_base + ".key"
-        context = (cert, key)
-        app.run(debug=False,
-                host=SERVER_HOST,
-                port=SERVER_PORT,
-                ssl_context=context)
-"""
+ALLOWED_HEADERS = ["*", "x-requested-with"]
+
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins,
+                   allow_credentials=True,
+                   allow_methods=["*"],
+                   allow_headers=ALLOWED_HEADERS)
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=ALLOWED_HOSTS if not _is_testing() else ["*"],)
