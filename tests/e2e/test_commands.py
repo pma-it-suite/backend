@@ -20,17 +20,26 @@ client = TestClient(app)
 
 class TestGetCommand:
     def test_get_command_success(
-            self, registered_command, get_get_command_req):
+            self, registered_command, get_get_command_req, get_header_dict_from_user_id, registered_user):
         params = get_get_command_req(registered_command.get_id())
         endpoint_url = get_command_endpoint_str() + "/get"
-        response = client.get(endpoint_url, params=params)
+        response = client.get(
+            endpoint_url,
+            params=params,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert check_get_command_response_valid(response, registered_command)
 
     def test_get_command_no_command_fail(
-            self, unregistered_command, get_get_command_req):
+            self, unregistered_command, get_get_command_req, get_header_dict_from_user_id, registered_user):
         params = get_get_command_req(unregistered_command.get_id())
         endpoint_url = get_command_endpoint_str() + "/get"
         response = client.get(endpoint_url, params=params)
+        response = client.get(
+            endpoint_url,
+            params=params,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert not check_get_command_response_valid(
             response, unregistered_command)
         assert "No command found" in response.json().get("detail")
@@ -38,36 +47,49 @@ class TestGetCommand:
 
 
 class TestGetBatchCommands:
-    def test_get_batch_commands_success(self, registered_command_factory):
+    def test_get_batch_commands_success(
+            self, registered_command_factory, get_header_dict_from_user_id, registered_user):
         cmds = []
         for _ in range(5):
             cmds.append(registered_command_factory())
         endpoint_url = get_command_endpoint_str() + "/batch/get"
         json = {"command_ids": [cmd.get_id() for cmd in cmds]}
-        response = client.post(endpoint_url, json=json)
+        response = client.post(
+            endpoint_url,
+            json=json,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert check_get_batch_commands_response_valid(response, cmds)
 
     def test_get_batch_commands_fail_no_data(
-            self, unregistered_command_factory):
+            self, unregistered_command_factory, get_header_dict_from_user_id, registered_user):
         cmds = []
         for _ in range(5):
             cmds.append(unregistered_command_factory())
         endpoint_url = get_command_endpoint_str() + "/batch/get"
         json = {"command_ids": [cmd.get_id() for cmd in cmds]}
-        response = client.post(endpoint_url, json=json)
+        response = client.post(
+            endpoint_url,
+            json=json,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 404
         assert not check_get_batch_commands_response_valid(response, cmds)
 
 
 class TestCreateCommand:
     def test_create_command_success(
-            self, registered_device, registered_user, get_register_command_req, get_device_from_db):
+            self, registered_device, registered_user, get_register_command_req, get_device_from_db, get_header_dict_from_user_id):
         json_dict = get_register_command_req(
             registered_device.get_id(),
             CommandNames.Update,
             registered_user.get_id())
         endpoint_url = get_command_endpoint_str() + "/create"
-        response = client.post(endpoint_url, json=json_dict)
+        response = client.post(
+            endpoint_url,
+            json=json_dict,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
 
         assert check_create_command_response_valid(response)
 
@@ -75,13 +97,17 @@ class TestCreateCommand:
         assert response.json().get("command_id") in device.command_ids
 
     def test_create_command_fail_no_device(
-            self, unregistered_device, registered_user, get_register_command_req):
+            self, unregistered_device, registered_user, get_register_command_req, get_header_dict_from_user_id):
         json_dict = get_register_command_req(
             unregistered_device.get_id(),
             CommandNames.Update,
             registered_user.get_id())
         endpoint_url = get_command_endpoint_str() + "/create"
-        response = client.post(endpoint_url, json=json_dict)
+        response = client.post(
+            endpoint_url,
+            json=json_dict,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 404
         assert "No device found" in response.json().get("detail")
         assert unregistered_device.get_id() in response.json().get("detail")
@@ -89,7 +115,7 @@ class TestCreateCommand:
 
 class TestCreateBatchCommand:
     def test_create_batch_command_success(
-            self, registered_device_factory, registered_user, get_device_from_db):
+            self, registered_device_factory, registered_user, get_device_from_db, get_header_dict_from_user_id):
         devices = [registered_device_factory() for _ in range(5)]
         json_dict = CreateBatchRequest(**{
             "device_ids": [device.get_id() for device in devices],
@@ -97,7 +123,11 @@ class TestCreateBatchCommand:
             "issuer_id": registered_user.get_id()
         }).model_dump()
         endpoint_url = get_command_endpoint_str() + "/batch/create"
-        response = client.post(endpoint_url, json=json_dict)
+        response = client.post(
+            endpoint_url,
+            json=json_dict,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
 
         assert check_create_batch_command_response_valid(response)
 
@@ -109,14 +139,18 @@ class TestCreateBatchCommand:
         assert len(ids) == expected_ids
 
     def test_create_batch_command_fail_no_device(
-            self, unregistered_device, registered_user):
+            self, unregistered_device, registered_user, get_header_dict_from_user_id):
         json_dict = CreateBatchRequest(**{
             "device_ids": [unregistered_device.get_id()],
             "name": CommandNames.Update,
             "issuer_id": registered_user.get_id()
         }).model_dump()
         endpoint_url = get_command_endpoint_str() + "/batch/create"
-        response = client.post(endpoint_url, json=json_dict)
+        response = client.post(
+            endpoint_url,
+            json=json_dict,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 404
         assert "No device found" in response.json().get("detail")
         assert unregistered_device.get_id() in response.json().get("detail")
@@ -124,24 +158,32 @@ class TestCreateBatchCommand:
 
 class TestUpdateCommandStatus:
     def test_update_command_status_success(
-            self, registered_command, get_update_status_request_factory, get_command_from_db):
+            self, registered_command, get_update_status_request_factory, get_command_from_db, get_header_dict_from_user_id, registered_user):
         status = get_command_from_db(registered_command.get_id()).status
         assert status == CommandStatus.Pending.value
 
         endpoint_url = get_command_endpoint_str() + "/update/status"
         request = get_update_status_request_factory(
             registered_command.get_id(), CommandStatus.Running)
-        response = client.patch(endpoint_url, json=request)
+        response = client.patch(
+            endpoint_url,
+            json=request,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 204
         status = get_command_from_db(registered_command.get_id()).status
         assert status == CommandStatus.Running.value
 
     def test_update_command_status_no_command_fail(
-            self, unregistered_command, get_update_status_request_factory):
+            self, unregistered_command, get_update_status_request_factory, get_header_dict_from_user_id, registered_user):
         endpoint_url = get_command_endpoint_str() + "/update/status"
         request = get_update_status_request_factory(
             unregistered_command.get_id(), CommandStatus.Running)
-        response = client.patch(endpoint_url, json=request)
+        response = client.patch(
+            endpoint_url,
+            json=request,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 404
         assert "No command found" in response.json().get("detail")
         assert unregistered_command.get_id() in response.json().get("detail")
@@ -156,30 +198,42 @@ def get_recent_command_request_factory():
 
 class TestGetRecentCommand:
     def test_get_recent_command_success(
-            self, registered_command_factory, registered_device, get_recent_command_request_factory):
+            self, registered_command_factory, registered_device, get_recent_command_request_factory, get_header_dict_from_user_id):
         cmds = [
             registered_command_factory(
                 device_id=registered_device.get_id()) for _ in range(3)]
 
         endpoint_url = get_command_endpoint_str() + "/recent"
         json = get_recent_command_request_factory(registered_device.get_id())
-        response = client.get(endpoint_url, params=json)
+        response = client.get(
+            endpoint_url,
+            params=json,
+            headers=get_header_dict_from_user_id(
+                registered_device.user_id))
         assert check_get_command_response_valid(response, cmds[0])
 
     def test_get_recent_command_no_device_fail(
-            self, unregistered_device, get_recent_command_request_factory):
+            self, unregistered_device, get_recent_command_request_factory, get_header_dict_from_user_id, registered_user):
         endpoint_url = get_command_endpoint_str() + "/recent"
         json = get_recent_command_request_factory(unregistered_device.get_id())
-        response = client.get(endpoint_url, params=json)
+        response = client.get(
+            endpoint_url,
+            params=json,
+            headers=get_header_dict_from_user_id(
+                registered_user.get_id()))
         assert response.status_code == 404
         assert "No device found" in response.json().get("detail")
         assert unregistered_device.get_id() in response.json().get("detail")
 
     def test_get_recent_command_no_commands_fail(
-            self, registered_device, get_recent_command_request_factory):
+            self, registered_device, get_recent_command_request_factory, get_header_dict_from_user_id):
         endpoint_url = get_command_endpoint_str() + "/recent"
         json = get_recent_command_request_factory(registered_device.get_id())
-        response = client.get(endpoint_url, params=json)
+        response = client.get(
+            endpoint_url,
+            params=json,
+            headers=get_header_dict_from_user_id(
+                registered_device.user_id))
         assert response.status_code == 404
         assert "No commands found" in response.json().get("detail")
         assert registered_device.get_id() in response.json().get("detail")

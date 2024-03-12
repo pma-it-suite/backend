@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import uuid4
 from utils.errors import DefaultDataNotFoundException, InvalidDataException, InvalidPasswordException
 from models.db.user import DbUser, RawUser
 from models.routes.users.register_user import RegisterUserRequest
@@ -44,11 +45,16 @@ def _get_raw_user_or_throw_if_404(
 
 
 def register_user_to_db(user_register_form: RegisterUserRequest) -> Id:
+    return register_user_to_db_and_get_secrets(user_register_form)[1]
+
+
+def register_user_to_db_and_get_secrets(
+        user_register_form: RegisterUserRequest) -> tuple[DbUser, Id, Id]:
     users_collection = get_users_collection()
     encoded_new_pass = user_register_form.raw_password.encode('utf-8')
     password_hash = str(bcrypt.hashpw(encoded_new_pass, bcrypt.gensalt()))
 
-    encoded_secret = (password_hash + user_register_form.email).encode('utf-8')
+    encoded_secret = str(uuid4()).encode('utf-8')
     user_secret_hash = str(bcrypt.hashpw(encoded_secret, bcrypt.gensalt()))
 
     db_user = DbUser(
@@ -75,7 +81,7 @@ def register_user_to_db(user_register_form: RegisterUserRequest) -> Id:
         raise exceptions.DatabaseError(detail=detail) from ex
 
     user_id = str(result.inserted_id)
-    return user_id
+    return (db_user, user_id, encoded_secret.decode('utf-8'))
 
 
 def check_if_admin_by_id(user_id: Id) -> bool:

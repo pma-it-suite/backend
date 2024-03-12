@@ -16,3 +16,4 @@ class RegisterUserRequest(BaseModelWithConfig):
 class RegisterUserResponse(BaseModel):
     user_id: Id
     jwt: str
+    user_secret: str

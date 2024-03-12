@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
 from config.db import get_users_collection
+from models.db.auth import Token
 import models.routes.users as models
 from models.db.common import Id
 from utils.errors import (
     InvalidPasswordException,
 )
-from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
+from utils.users import register_user_to_db_and_get_secrets, validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
 from utils.auth import get_auth_token_from_user_id, get_user_id_from_header_and_check_existence, hash_and_compare
 
 router = APIRouter()
@@ -35,12 +36,16 @@ async def get_user(user_id: Id = Depends(get_user_id_from_header_and_check_exist
     status_code=201,
 )
 async def register_user(user_register_form: models.RegisterUserRequest):
-    user_id = register_user_to_db(user_register_form)
+    (_, user_id, secret) = register_user_to_db_and_get_secrets(user_register_form)
 
     auth_token_str = await get_auth_token_from_user_id(user_id)
+    device_secret = Token.get_enc_token_str_from_dict(
+        {"secret": secret, "user_id": user_id})
+
     return models.RegisterUserResponse(**{
         "user_id": user_id,
-        "jwt": auth_token_str
+        "jwt": auth_token_str,
+        "user_secret": device_secret
     })
 
 
