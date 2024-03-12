@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from config.db import get_users_collection
 import models.routes.users as models
 from models.db.common import Id
@@ -6,7 +6,7 @@ from utils.errors import (
     InvalidPasswordException,
 )
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
-from utils.auth import get_auth_token_from_user_id, hash_and_compare
+from utils.auth import get_auth_token_from_user_id, get_user_id_from_header_and_check_existence, hash_and_compare
 
 router = APIRouter()
 ROUTE_BASE = "/users"
@@ -20,7 +20,7 @@ TAG = "users"
     tags=[TAG],
     status_code=200,
 )
-async def get_user(user_id: Id):
+async def get_user(user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     validate_user_id_or_throw(user_id)
 
     user = get_db_user_or_throw_if_404(user_id)

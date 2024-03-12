@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from config.db import get_commands_collection, get_devices_collection
 from bson.objectid import ObjectId
 from models.db.command import CommandStatus, Command
@@ -15,7 +15,7 @@ from utils.errors import (
 )
 import utils.commands as utils
 from utils.users import validate_user_id_or_throw, get_db_user_or_throw_if_404, register_user_to_db
-from utils.auth import get_auth_token_from_user_id, hash_and_compare
+from utils.auth import get_auth_token_from_user_id, get_user_id_from_header_and_check_existence, hash_and_compare
 import utils.errors as exceptions
 import models.routes.commands as cmd_models
 from pymongo import ASCENDING, DESCENDING
@@ -34,7 +34,7 @@ commands_collection = get_commands_collection
     tags=[TAG],
     status_code=200,
 )
-async def get_command(command_id: Id):
+async def get_command(command_id: Id, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     return cmd_models.get_command.GetCommandResponse(
         command=utils.get_command_from_db_or_404(command_id))
 
@@ -46,7 +46,7 @@ async def get_command(command_id: Id):
     tags=[TAG],
     status_code=200,
 )
-async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest):
+async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     commands = utils.get_many_commands_from_db_or_404(request.command_ids)
     return cmd_models.batch_commands.BatchCommandsResponse(commands=commands)
 
@@ -58,7 +58,7 @@ async def get_batch_cmds(request: cmd_models.batch_commands.BatchCommandsRequest
     tags=[TAG],
     status_code=200,
 )
-async def get_batch_cmds_all(device_id: Id):
+async def get_batch_cmds_all(device_id: Id, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     commands_collection_handle = commands_collection()
     commands = commands_collection_handle.find({'device_id': device_id})
     if not commands:
@@ -129,7 +129,7 @@ async def get_most_recent_command(
     tags=[TAG],
     status_code=201,
 )
-async def create_command(request: cmd_models.create_command.CreateCommandRequest):
+async def create_command(request: cmd_models.create_command.CreateCommandRequest, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     devices_collection = get_devices_collection()
     commands_collection_handle = commands_collection()
     get_device_from_db_or_404(request.device_id)
@@ -162,7 +162,7 @@ async def create_command(request: cmd_models.create_command.CreateCommandRequest
     tags=[TAG],
     status_code=201,
 )
-async def create_commands_for_multiple_devices(request: cmd_models.create_batch.CreateBatchRequest):
+async def create_commands_for_multiple_devices(request: cmd_models.create_batch.CreateBatchRequest, user_id: Id = Depends(get_user_id_from_header_and_check_existence)):
     commands_collection_handle = commands_collection()
     [get_device_from_db_or_404(device_id) for device_id in request.device_ids]
 
